@@ -28,7 +28,6 @@ library(quantmod)
 library(xts)
 library(reshape2)
 library(ggplot2)
-library(reticulate)
 ```
 
 Set the width of the output boxes to be a bit wider than usual. \*This will help when outputting matrices.\*

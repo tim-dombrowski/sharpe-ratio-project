@@ -56,7 +56,6 @@ library(quantmod)
 library(xts)
 library(reshape2)
 library(ggplot2)
-library(reticulate)
 ```
 
 Set the width of the output boxes to be a bit wider than usual. \*This
@@ -656,7 +655,7 @@ summary(AAPLfit)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -150.143  -42.547   -6.899   44.112  126.898 
+    ## -150.143  -42.547   -6.899   44.112  126.897 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
@@ -809,7 +808,7 @@ summary(ADAfit)
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)   
-    ## (Intercept)  22.1157    45.6460   0.485  0.62985   
+    ## (Intercept)  22.1158    45.6460   0.485  0.62985   
     ## SPY           2.4137     0.7014   3.441  0.00108 **
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
