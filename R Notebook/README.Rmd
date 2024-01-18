@@ -1,0 +1,471 @@
+---
+title: "Sharpe Ratio Comparisons"
+output: github_document
+---
+
+## R Packages
+
+* The [fredr package](https://cran.r-project.org/package=fredr) is an R package that wraps the FRED API for easy importing of FRED data into R.
+* The [quantmod package](https://cran.r-project.org/package=quantmod) contains tools for importing and analyzing financial data.
+* The [xts package](https://cran.r-project.org/package=xts) allows for some additional time series functionality.
+* The [reshape2 package](https://cran.r-project.org/package=reshape2) is used to prepare data frames for ggplot2 graphics.
+* The [ggplot2 package](https://cran.r-project.org/package=ggplot2) includes tools for generating graphics and visuals.
+* The [rmarkdown package](https://cran.r-project.org/package=rmarkdown) is used to generate this R Notebook.
+
+The first three lines in this setup chunk automatically install any R packages that you may be missing. One note regarding any code chunk labeled 'setup' is that the R Notebook will automatically run it prior to any other code chunk.
+
+```{r setup, results='hide'}
+list.of.packages = c("fredr",
+                     "quantmod", 
+                     "xts", 
+                     "reshape2", 
+                     "ggplot2", 
+                     "rmarkdown")
+new.packages = list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+library(fredr)
+library(quantmod)
+library(xts)
+library(reshape2)
+library(ggplot2)
+library(reticulate)
+```
+
+Set the width of the output boxes to be a bit wider than usual. \*This will help when outputting matrices.\*
+
+```{r options}
+options(width=120)
+```
+
+
+## FRED Data Import
+
+To access the FRED API, you must first create an account and [request an API key](https://fred.stlouisfed.org/docs/api/api_key.html). If you wish to run the code and replicate the results, you'll need to make an account, generate your own API key, and run this command un-commented with your key in place of the placeholder text. 
+
+```{r setkey}
+#fredr_set_key("<YOUR-FRED-API-KEY>")
+```
+
+Using the `fredr()` function, we will import the 10-year Treasury note yields. This is a typical proxy for the risk-free return when applying CAPM and calculating stock betas. The Sys.Date function is simply using the computer's current time to get the most up-to-date data. *We could also import BTC prices via FRED, but they only use data from one exchange, whereas CoinMarketCap averages across many.*
+
+```{r freddata}
+RFraw = fredr(
+  series_id = "DGS10",
+  observation_start = as.Date("2011-04-30"),
+  observation_end = as.Date(Sys.Date()),
+  frequency = "m"
+)
+INFraw = fredr(
+  series_id = "CPIAUCSL",
+  observation_start = as.Date("2011-04-30"),
+  observation_end = as.Date(Sys.Date()),
+  frequency = "m"
+)
+```
+
+We will then create a `xts` time series object, `ALL`, to collect all the asset returns. This effectively imposes the directed nature of time into the data frame's properties and opens the door to additional functions from the xts package. The second line of code renames the Treasury yields as `rf`, and the last line removes the extra variables that are no longer needed.
+
+```{r ALL1}
+ALL = xts(RFraw,order.by=RFraw$date)
+colnames(ALL)[colnames(ALL)=="value"] <- "rf"
+ALL = subset(ALL,select=-c(date,series_id,realtime_start,realtime_end))
+```
+
+Before we attach the inflation rate to the `ALL` table, we must first calculate it from the CPI levels that we downloaded. This will effectively be the same process that we will follow to convert stock prices to annualized returns.
+
+First, we do the same three steps as above, which creates the `CPI` variable in the `INF` data frame. Then we calculate the monthly log returns (growth rates) by taking the successive difference between the natural logarithms of the CPI. Lastly, we convert the monthly inflation numbers to annualized percentages by multiplying by 12 and 100. *There are some more details on this below in the stock return examples.*
+
+```{r ALL2}
+INF = xts(INFraw,order.by=INFraw$date)
+colnames(INF)[colnames(INF)=="value"] <- "CPI"
+INF = subset(INF,select=-c(date,series_id,realtime_start,realtime_end))
+INF$INFmonthly = log(as.numeric(INF$CPI)) - log(as.numeric(lag(INF$CPI)))
+INF$inf = INF$INFmonthly*12*100
+# Attach the annualized inflation numbers to the ALL data frame
+ALL = merge(ALL,INF$inf)
+```
+
+
+## Yahoo Finance Data Import
+
+The quantmod package contains tools for importing both stock and crypto data from Yahoo! Finance. The `getSymbols()` function is used to import the data. The first argument is a vector of ticker symbols, and the `src` argument specifies the data source. The `from` and `to` arguments specify the date range for the data. Then the `periodicity="monthly"` requests a monthly series, rather than the default daily frequency.
+
+```{r assetdata, results='hide'}
+tickers = c("SPY",
+            "GOOG",
+            "AAPL",
+            "TSLA",
+            "BTC-USD",
+            "ETH-USD",
+            "ADA-USD")
+getSymbols(tickers,
+           src="yahoo",
+           from="2011-04-01",
+           to=Sys.Date(),
+           periodicity="monthly")
+```
+
+Rename the crypto data frames since the $ indexing doesn't work with the hyphen in the name. Then covert the asset price series to annualized returns and merge these return series to the `ALL` data frame.
+
+```{r merge}
+BTC = `BTC-USD`
+ETH = `ETH-USD`
+ADA = `ADA-USD`
+# Compute returns
+SPY$Return = c(NA, diff(log(as.numeric(SPY$SPY.Adjusted))))
+GOOG$Return = c(NA, diff(log(as.numeric(GOOG$GOOG.Adjusted))))
+AAPL$Return = c(NA, diff(log(as.numeric(AAPL$AAPL.Adjusted))))
+TSLA$Return = c(NA, diff(log(as.numeric(TSLA$TSLA.Adjusted))))
+BTC$Return = c(NA, diff(log(as.numeric(BTC$`BTC-USD.Adjusted`))))
+ETH$Return = c(NA, diff(log(as.numeric(ETH$`ETH-USD.Adjusted`))))
+ADA$Return = c(NA, diff(log(as.numeric(ADA$`ADA-USD.Adjusted`))))
+# Annualize returns
+SPY$SPY = SPY$Return*12*100
+GOOG$GOOG = GOOG$Return*12*100
+AAPL$AAPL = AAPL$Return*12*100
+TSLA$TSLA = TSLA$Return*12*100
+BTC$BTC = BTC$Return*12*100
+ETH$ETH = ETH$Return*12*100
+ADA$ADA = ADA$Return*12*100
+# Merge to ALL
+ALL = merge(ALL, 
+            SPY$SPY,
+            GOOG$GOOG,
+            AAPL$AAPL,
+            TSLA$TSLA,
+            BTC$`BTC`,
+            ETH$`ETH`,
+            ADA$`ADA`)
+```
+
+
+## Prepare Final Data
+
+Now that we have all the annualized monthly returns for all the assets, we will subset down to the 60 most recent full month observations. The first line takes the `tail()` of the `ALL` data frame and counts how many of the most recent observations are incomplete using `complete.cases()`. Then the second line creates our `FINAL` data frame where we trim off those extra, incomplete observations. Then the final line trims off anything earlier than the most recent 60 months. Thus, we end with a data frame with the 60 most recent monthly observations where we have all data present (except for ADA, which doesn't yet have a full 60 months of historical return data). This is the typical kind of data for CAPM calculations; however, there are certainly many extensions and expansions in the vast asset pricing literature.
+
+```{r subset60mo}
+ntrim = sum(!complete.cases(tail(ALL)))
+FINAL = ALL[1:(nrow(ALL)-ntrim),]
+FINAL = last(FINAL,60)
+```
+
+Then before we dive into analyzing our final dataset, let's create a couple portfolios between the S&P 500 and Bitcoin. For Portfolio 1, we'll do an equal-weight portfolio between the S&P 500 and Bitcoin. Then Portfolio 2 will be 95% S&P 500 and 5% Bitcoin.
+
+```{r portsetup}
+w = c(0.5,0.5)
+FINAL$PORT5050 = w[1]*FINAL$SPY+w[2]*FINAL$BTC
+w = c(0.95,0.05)
+FINAL$PORT9505 = w[1]*FINAL$SPY+w[2]*FINAL$BTC
+```
+
+## Examine the Returns Series
+
+### Visualize the Data
+
+We will use the ggplot2 package for graphics. To start, let's plot out a bar chart for the least volatile return series, the risk-free rate (10-year Treasury yield). For this plot, we load in our final data frame, set the x input as `Index` (which is the index for our xts object, *time*). Then we plot the risk-free return on the y-axis. The `geom_col()` line indicates the type of plot, and the title is set with `ggtitle()`. The `xlab()` function is used to remove the x-axis label since it is not needed here.
+
+```{r rfplot}
+ggplot(FINAL,aes(x=Index,y=rf))+
+  geom_col()+
+  xlab("")+
+  ggtitle("Risk-Free Asset Returns (10-Year Treasury Yield)")
+```
+
+Then we'll generate the same chart for the inflation rates and asset returns.
+
+```{r otherplots}
+ggplot(FINAL,aes(x=Index,y=inf))+
+  geom_col()+
+  xlab("")+
+  ggtitle("Annualized Inflation Rates")
+ggplot(FINAL,aes(x=Index,y=SPY))+
+  geom_col()+
+  xlab("")+
+  ggtitle("SPY Returns")
+ggplot(FINAL,aes(x=Index,y=GOOG))+
+  geom_col()+
+  xlab("")+
+  ggtitle("GOOG Returns")
+ggplot(FINAL,aes(x=Index,y=AAPL))+
+  geom_col()+
+  xlab("")+
+  ggtitle("AAPL Returns")
+ggplot(FINAL,aes(x=Index,y=TSLA))+
+  geom_col()+
+  xlab("")+
+  ggtitle("TSLA Returns")
+ggplot(FINAL,aes(x=Index,y=BTC))+
+  geom_col()+
+  xlab("")+
+  ggtitle("BTC Returns")
+ggplot(FINAL,aes(x=Index,y=ETH))+
+  geom_col()+
+  xlab("")+
+  ggtitle("ETH Returns")
+ggplot(FINAL,aes(x=Index,y=ADA))+
+  geom_col()+
+  xlab("")+
+  ggtitle("ADA Returns")
+ggplot(FINAL,aes(x=Index,y=PORT5050))+
+  geom_col()+
+  xlab("")+
+  ggtitle("Portfolio 1 Returns (50% S&P 500, 50% BTC)")
+ggplot(FINAL,aes(x=Index,y=PORT9505))+
+  geom_col()+
+  xlab("")+
+  ggtitle("Portfolio 2 Returns (95% S&P 500, 5% BTC)")
+```
+
+### The Multivariate Return Distribution
+
+Now let's go beyond just visualizing the individual return series and look at some statistics for the multivariate return distribution. If we consider a multivariate normal distribution, we can think of the mean vector as the expected returns for each asset, and the covariance matrix as the variance of each asset's returns along the diagonal, and the covariances between each pair of assets in the off-diagonal elements.
+
+The `colMeans()` function calculates the average of each column (i.e. the average return for each asset).*Note: the `round()` function is applied to reduce the number of decimals when displaying the calculations in the output.*
+
+```{r expret}
+Er = colMeans(FINAL,na.rm=TRUE)
+Er |> round(digits=2)
+```
+
+Now let's calculate the volatility (standard deviation of returns) for each of these assets. This is done by simply calculating the standard deviation `sd()` of each return series (reduced to just one line of code using the `apply()` function).
+
+```{r vols}
+sigma = apply(FINAL,2,sd,na.rm=TRUE)
+sigma |> round(digits=2)
+```
+
+Then beyond the individual asset volatilities, another critical component of portfolio-level risk is the correlations across the individual assets. The starting point for this is the covariance matrix, which we can compute using the `cov()` function. *Note: the `use="pairwise.complete.obs"` parameter prevents missing values in the event that any of the assets have less than 60 months of data available. This is no longer necessary; however, that was not the case back when I started this.*
+
+```{r cov}
+cov(FINAL, use="pairwise.complete.obs") |> round(digits=0)
+```
+
+The covariance matrix above captures not just the degree of variation in each asset return series, but also the degree to which each pair co-moves with each other. This is often normalized by individual asset volatilities to give a correlation matrix:
+
+```{r corr}
+Rho = cor(FINAL,use="pairwise.complete.obs")
+Rho |> round(digits=2)
+```
+
+
+### Real Returns
+
+Before we start calculating Sharpe ratios and betas, we first should adjust our asset returns for inflation to convert from 'nominal' returns to 'real' returns.
+
+```{r realrets}
+REAL = xts(order.by=index(FINAL))
+REAL$rf = (FINAL$rf-FINAL$inf)/(1+(FINAL$inf/100))
+REAL$SPY = (FINAL$SPY-FINAL$inf)/(1+(FINAL$inf/100))
+REAL$GOOG = (FINAL$GOOG-FINAL$inf)/(1+(FINAL$inf/100))
+REAL$AAPL = (FINAL$AAPL-FINAL$inf)/(1+(FINAL$inf/100))
+REAL$TSLA = (FINAL$TSLA-FINAL$inf)/(1+(FINAL$inf/100))
+REAL$BTC = (FINAL$BTC-FINAL$inf)/(1+(FINAL$inf/100))
+REAL$ETH = (FINAL$ETH-FINAL$inf)/(1+(FINAL$inf/100))
+REAL$ADA = (FINAL$ADA-FINAL$inf)/(1+(FINAL$inf/100))
+REAL$PORT5050 = (FINAL$PORT5050-FINAL$inf)/(1+(FINAL$inf/100))
+REAL$PORT9505 = (FINAL$PORT9505-FINAL$inf)/(1+(FINAL$inf/100))
+```
+
+If we examine the same summary statistics for the real returns, we can see that the risk-free rate is actually negative due to high inflation. Then the rest of the results are qualitatively similar to before with just minor changes to some numbers due to the inflation adjustment.
+
+```{r realcorr}
+RealEr = colMeans(REAL,na.rm=TRUE)
+RealEr |> round(digits=2)
+Realsigma = apply(REAL,2,sd,na.rm=TRUE)
+Realsigma |> round(digits=2)
+RealRho = cor(REAL,use="pairwise.complete.obs")
+RealRho |> round(digits=2)
+```
+
+### Excess Returns
+
+The last step before we calculate the Sharpe ratios is converting the real asset returns into 'excess returns'. This involves subtracting the risk-free returns from each asset's return series. Since our average real risk-free return was negative, this actually increases the expected returns. One way to think about what this does is that the theoretical risk-free asset should have zero variance. Since our T-bill risk-free asset does not have a zero variance, this adjustment normalizes the scenario to where the 'excess return adjustment' (subtracting rf) would force the risk-free returns to have zero variance, and thus be more appropriate for modeling. Interestingly, even after the inflation and risk-free adjustments, Cardano's ADA is still more highly correlated with Alphabet's stock, than it is with its primary smart contract competitor, ETH.
+
+```{r excessrets}
+XS = xts(order.by=index(FINAL))
+XS$SPY = REAL$SPY-REAL$rf
+XS$GOOG = REAL$GOOG-REAL$rf
+XS$AAPL = REAL$AAPL-REAL$rf
+XS$TSLA = REAL$TSLA-REAL$rf
+XS$BTC = REAL$BTC-REAL$rf
+XS$ETH = REAL$ETH-REAL$rf
+XS$ADA = REAL$ADA-REAL$rf
+XS$PORT5050 = REAL$PORT5050-REAL$rf
+XS$PORT9505 = REAL$PORT9505-REAL$rf
+```
+
+```{r excessstats}
+xsEr = colMeans(XS,na.rm=TRUE)
+xsEr |> round(digits=2)
+xssigma = apply(XS,2,sd,na.rm=TRUE)
+xssigma |> round(digits=2)
+xsRho = cor(XS,use="pairwise.complete.obs")
+xsRho |> round(digits=2)
+```
+
+## Sharpe Ratios
+
+The Sharpe ratio compares the ratio of the excess return of portfolio with its volatility. For simplicity, we will calculate this for portfolios invested 100% in each individual asset, followed by the two portfolios that we constructed.
+
+The formula: $Sharpe$ $Ratio = \dfrac{R_p-R_f}{\sigma_p}$ divides the excess return by the standard deviation of the excess returns.
+
+```{r sharpes5yr}
+Sharpes_5yr = xsEr/xssigma
+Sharpes_5yr |> round(digits=2)
+```
+
+
+## Betas
+
+Another important distinction that is often made in finance is decomposing risk (volatility) into systematic piece and an idiosyncratic piece. In the Capital Asset Pricing Model, systematic risk is effectively the portion of an asset/portfolio's return that can be explained by a single market factor. This concept has branched off a vast literature on asset pricing, which includes multifactor models. We will stick with the single-factor CAPM where the S&P 500 returns are a fairly typical measure of broader market movements.
+
+$r_i - r_f = \alpha + \beta*(r_m - r_f) +\epsilon$
+
+In the above equation, $r_i$ is the real excess return for company $i$, $r_f$ is the real risk-free rate, and $r_m$ is the real market return. We then use our data to estimate $\alpha$ and $\beta$, and then our model errors are represented by $\epsilon$.
+
+To fit the CAPM relationship, we estimate a linear regression of the GOOG excess returns on the market (S&P500) excess returns. The summary function prints the regression estimates/results, and then ggplot lets us easily plot the relationship. For GOOG, we get a beta estimate reasonably close to 1, which suggests that Alphabet has roughly an equal level of systematic risk as the market as a whole (or at least as measured by the S&P 500). Thus, the interpretation is that if the market goes up or down by 1%, we would expect that GOOG would also increase or decrease by the same amount (percentage-wise).
+
+Then let's make note of the strength of the fit with the $R^2>0.5$. Theoretically, this would indicate the percent of variation in GOOG that is explained by broader market movements, but since GOOG is a major component of the S&P 500, that might not be the best interpretation for this particular example. In other words, it shouldn't be surprising that the beta for GOOG is close to 1.
+
+The last bit of info that we will make note of from these results is the `(Intercept)` coefficient. In CAPM, this estimate of 'alpha' represents the average annual outperformance of the asset over the market. Thus, GOOG has outperformed the market on average over the past 5 years.
+
+```{r googfit}
+GOOGfit = lm(GOOG~SPY,data=XS)
+summary(GOOGfit)
+ggplot(XS,aes(x=SPY,y=GOOG))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+Now with Apple, we get a slightly larger beta, which suggests that a 1% increase in the market is expected to correspond with an amplified increase in the price of AAPL. Similarly, a 1% decline in the market would be expected to correlate with a larger decrease in the price of AAPL. Along with this larger systematic risk, the alpha estimate shows that AAPL has compensated for this higher risk with a higher average return over the market.
+
+```{r aaplfit}
+AAPLfit = lm(AAPL~SPY,data=XS)
+summary(AAPLfit)
+ggplot(XS,aes(x=SPY,y=AAPL))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+With Tesla, we see there is a much larger beta estimate. This also corresponds with a larger alpha suggesting this increased systematic risk has been compensated well. However, the strength of this relationship is weaker than the previous two examples. Although Tesla is still a fairly recent addition to the S&P 500 (late-2020), it has quickly jumped into one of the top 10 spots in terms of market capitalization (and thus, weight in the index). However, it remains smaller than both Alphabet and Apple, so the weaker relationship is not surprising.
+
+```{r tslafit}
+TSLAfit = lm(TSLA~SPY,data=XS)
+summary(TSLAfit)
+ggplot(XS,aes(x=SPY,y=TSLA))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+Similarly, we can calculate the beta for our other assets and portfolios.
+
+```{r btcfit}
+BTCfit = lm(BTC~SPY,data=XS)
+summary(BTCfit)
+ggplot(XS,aes(y=BTC,x=SPY))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+```{r ethfit}
+ETHfit = lm(ETH~SPY,data=XS)
+summary(ETHfit)
+ggplot(XS,aes(y=ETH,x=SPY))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+```{r adafit}
+ADAfit = lm(ADA~SPY,data=XS)
+summary(ADAfit)
+ggplot(XS,aes(y=ADA,x=SPY))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+Now let's check out the portfolios. Since the S&P 500 is one of the two weights, the beta will transition from bitcoin's beta at $w_{BTC}=1$ to a beta of 1 at $w_{BTC}=0$.
+
+```{r port1fit}
+PORT5050fit = lm(PORT5050~SPY,data=XS)
+summary(PORT5050fit)
+ggplot(XS,aes(y=PORT5050,x=SPY))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+```{r port2fit}
+PORT9505fit = lm(PORT9505~SPY,data=XS)
+summary(PORT9505fit)
+ggplot(XS,aes(y=PORT9505,x=SPY))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+### Crypto-Betas
+
+As an experiment, we can calculate the "beta" for some of the assets using BTC as the market index, rather than the S&P 500. From this, we can see from the $R^2$'s that the other cryptos achieve a closer fit than they did with the S&P 500. Then the betas under 1 suggest that the impact of BTC volatility is dampened when impacting the other cryptos. The alphas show that after removing the volatility explained away by BTC, both ETH and ADA generated a positive excess real return.
+
+```{r ethbtcfit}
+ETHBTCfit = lm(ETH~BTC,data=XS)
+summary(ETHBTCfit)
+ggplot(XS,aes(y=ETH,x=BTC))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+```{r adabtcfit}
+ADABTCfit = lm(ADA~BTC,data=XS)
+summary(ADABTCfit)
+ggplot(XS,aes(y=ADA,x=BTC))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+We can also regress the ADA excess returns on the ETH excess returns.
+
+```{r adaethfit}
+ADAETHfit = lm(ADA~ETH,data=XS)
+summary(ADAETHfit)
+ggplot(XS,aes(y=ADA,x=ETH))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+### Case Study: Tesla and Bitcoin
+
+Next, we will model Tesla's excess returns as a function of Bitcoin's excess returns. Since Tesla has been purchasing Bitcoin to hold on their balance sheet, we might expect an interesting, strong result. While we do find an interesting result, it is for the opposite reason. Both the BTC "beta"  and the regression $R^2$ are quite small.
+
+```{r tslabtcfit}
+TSLABTCfit = lm(TSLA~BTC,data=XS)
+summary(TSLABTCfit)
+ggplot(XS,aes(y=TSLA,x=BTC))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+From the Tesla 10-K Filing for the Year Ended 12/31/2020:
+
+"In January 2021, we updated our investment policy...including digital assets...Thereafter, we invested an aggregate \$1.50 billion in bitcoin under this policy and may acquire and hold digital assets from time to time or long-term."
+
+*Note: During Q2 2022, Tesla sold roughly 80% of their bitcoin holdings. Their balance sheet reported \$1.26B at the end of Q1 2022 and \$0.22B at the end of Q2 2022.*
+
+So let's split the time series into two parts: before this updated Bitcoin policy, and after. Then we compute/display the correlations of the excess returns and estimate a linear regression for each window.
+
+```{r tslabtcfit2}
+subXS1 = XS[index(XS)<"2021-01-01",]
+subXS2 = XS[index(XS)>="2021-01-01",]
+cor(subXS1$BTC,subXS1$TSLA)
+cor(subXS2$BTC,subXS2$TSLA)
+TSLABTCfit1 = lm(TSLA~BTC,data=subXS1)
+TSLABTCfit2 = lm(TSLA~BTC,data=subXS2)
+summary(TSLABTCfit1)
+summary(TSLABTCfit2)
+ggplot(subXS1,aes(y=TSLA,x=BTC))+
+  geom_point()+
+  geom_smooth(method="lm")
+ggplot(subXS2,aes(y=TSLA,x=BTC))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+
