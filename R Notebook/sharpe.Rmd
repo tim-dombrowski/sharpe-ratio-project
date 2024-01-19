@@ -1,5 +1,6 @@
 ---
 title: "Sharpe Ratio Comparisons"
+date: "Last updated: `r Sys.Date()`"
 output: html_notebook
 ---
 
