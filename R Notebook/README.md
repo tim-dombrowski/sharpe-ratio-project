@@ -3,6 +3,9 @@ Sharpe Ratio Comparisons
 
 ## R Packages
 
+Below is a list of R packages that will be used throughout this R
+Notebook.
+
 - The [fredr package](https://cran.r-project.org/package=fredr) is an R
   package that wraps the FRED API for easy importing of FRED data into
   R.
@@ -10,23 +13,23 @@ Sharpe Ratio Comparisons
   contains tools for importing and analyzing financial data.
 - The [xts package](https://cran.r-project.org/package=xts) allows for
   some additional time series functionality.
-- The [reshape2 package](https://cran.r-project.org/package=reshape2) is
-  used to prepare data frames for ggplot2 graphics.
 - The [ggplot2 package](https://cran.r-project.org/package=ggplot2)
   includes tools for generating graphics and visuals.
 - The [rmarkdown package](https://cran.r-project.org/package=rmarkdown)
   is used to generate this R Notebook.
 
-The first three lines in this setup chunk automatically install any R
-packages that you may be missing. One note regarding any code chunk
-labeled ‘setup’ is that the R Notebook will automatically run it prior
-to any other code chunk.
+The first three lines in the setup chunk below will automatically
+install any R packages that you may be missing. Another observation to
+make about the code chunk is that it is labeled as ‘setup’, which is a
+special name that the R Notebook will recognize and automatically run
+prior to running any other code chunk. This is useful for loading in
+packages and setting up other global options that will be used
+throughout the notebook.
 
 ``` r
 list.of.packages = c("fredr",
                      "quantmod", 
                      "xts", 
-                     "reshape2", 
                      "ggplot2", 
                      "rmarkdown")
 new.packages = list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
@@ -54,15 +57,7 @@ library(quantmod)
 
 ``` r
 library(xts)
-library(reshape2)
 library(ggplot2)
-```
-
-Set the width of the output boxes to be a bit wider than usual. \*This
-will help when outputting matrices.\*
-
-``` r
-options(width=120)
 ```
 
 ## FRED Data Import
@@ -360,8 +355,10 @@ Er = colMeans(FINAL,na.rm=TRUE)
 Er |> round(digits=2)
 ```
 
-    ##       rf      inf      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     2.28     4.01    14.53    20.02    32.53    48.32    48.48    56.79    53.44    31.50    16.22
+    ##       rf      inf      SPY     GOOG     AAPL     TSLA      BTC      ETH 
+    ##     2.28     4.01    14.53    20.02    32.53    48.32    48.48    56.79 
+    ##      ADA PORT5050 PORT9505 
+    ##    53.44    31.50    16.22
 
 Now let’s calculate the volatility (standard deviation of returns) for
 each of these assets. This is done by simply calculating the standard
@@ -373,8 +370,10 @@ sigma = apply(FINAL,2,sd,na.rm=TRUE)
 sigma |> round(digits=2)
 ```
 
-    ##       rf      inf      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     1.18     3.94    65.38    93.36   101.82   241.47   236.54   295.17   390.57   135.87    68.15
+    ##       rf      inf      SPY     GOOG     AAPL     TSLA      BTC      ETH 
+    ##     1.18     3.94    65.38    93.36   101.82   241.47   236.54   295.17 
+    ##      ADA PORT5050 PORT9505 
+    ##   390.57   135.87    68.15
 
 Then beyond the individual asset volatilities, another critical
 component of portfolio-level risk is the correlations across the
@@ -394,10 +393,10 @@ cov(FINAL, use="pairwise.complete.obs") |> round(digits=0)
     ## inf        0   15   -25   -22   -32   -47  -240  -223   -213     -133      -36
     ## SPY       -5  -25  4275  4604  5286  8846  6806  9646  10178     5540     4401
     ## GOOG     -12  -22  4604  8717  5606 11338  8015 11557  17337     6309     4774
-    ## AAPL     -21  -32  5286  5606 10368 17192  7367 11165   7728     6327     5390
+    ## AAPL     -21  -32  5286  5606 10368 17192  7367 11166   7728     6327     5390
     ## TSLA     -82  -47  8846 11338 17192 58308 20693 34056  24325    14770     9439
     ## BTC      -28 -240  6806  8015  7367 20693 55952 53988  50521    31379     9263
-    ## ETH      -62 -223  9646 11557 11165 34056 53988 87123  71008    31817    11864
+    ## ETH      -62 -223  9646 11557 11166 34056 53988 87123  71008    31817    11864
     ## ADA      -75 -213 10178 17337  7728 24325 50521 71008 152544    30349    12195
     ## PORT5050 -16 -133  5540  6309  6327 14770 31379 31817  30349    18459     6832
     ## PORT9505  -6  -36  4401  4774  5390  9439  9263 11864  12195     6832     4644
@@ -412,18 +411,30 @@ Rho = cor(FINAL,use="pairwise.complete.obs")
 Rho |> round(digits=2)
 ```
 
-    ##             rf   inf   SPY  GOOG  AAPL  TSLA   BTC   ETH   ADA PORT5050 PORT9505
-    ## rf        1.00  0.03 -0.06 -0.11 -0.18 -0.29 -0.10 -0.18 -0.16    -0.10    -0.07
-    ## inf       0.03  1.00 -0.10 -0.06 -0.08 -0.05 -0.26 -0.19 -0.14    -0.25    -0.13
-    ## SPY      -0.06 -0.10  1.00  0.75  0.79  0.56  0.44  0.50  0.40     0.62     0.99
-    ## GOOG     -0.11 -0.06  0.75  1.00  0.59  0.50  0.36  0.42  0.48     0.50     0.75
-    ## AAPL     -0.18 -0.08  0.79  0.59  1.00  0.70  0.31  0.37  0.19     0.46     0.78
-    ## TSLA     -0.29 -0.05  0.56  0.50  0.70  1.00  0.36  0.48  0.26     0.45     0.57
-    ## BTC      -0.10 -0.26  0.44  0.36  0.31  0.36  1.00  0.77  0.55     0.98     0.57
-    ## ETH      -0.18 -0.19  0.50  0.42  0.37  0.48  0.77  1.00  0.62     0.79     0.59
-    ## ADA      -0.16 -0.14  0.40  0.48  0.19  0.26  0.55  0.62  1.00     0.57     0.46
-    ## PORT5050 -0.10 -0.25  0.62  0.50  0.46  0.45  0.98  0.79  0.57     1.00     0.74
-    ## PORT9505 -0.07 -0.13  0.99  0.75  0.78  0.57  0.57  0.59  0.46     0.74     1.00
+    ##             rf   inf   SPY  GOOG  AAPL  TSLA   BTC   ETH   ADA PORT5050
+    ## rf        1.00  0.03 -0.06 -0.11 -0.18 -0.29 -0.10 -0.18 -0.16    -0.10
+    ## inf       0.03  1.00 -0.10 -0.06 -0.08 -0.05 -0.26 -0.19 -0.14    -0.25
+    ## SPY      -0.06 -0.10  1.00  0.75  0.79  0.56  0.44  0.50  0.40     0.62
+    ## GOOG     -0.11 -0.06  0.75  1.00  0.59  0.50  0.36  0.42  0.48     0.50
+    ## AAPL     -0.18 -0.08  0.79  0.59  1.00  0.70  0.31  0.37  0.19     0.46
+    ## TSLA     -0.29 -0.05  0.56  0.50  0.70  1.00  0.36  0.48  0.26     0.45
+    ## BTC      -0.10 -0.26  0.44  0.36  0.31  0.36  1.00  0.77  0.55     0.98
+    ## ETH      -0.18 -0.19  0.50  0.42  0.37  0.48  0.77  1.00  0.62     0.79
+    ## ADA      -0.16 -0.14  0.40  0.48  0.19  0.26  0.55  0.62  1.00     0.57
+    ## PORT5050 -0.10 -0.25  0.62  0.50  0.46  0.45  0.98  0.79  0.57     1.00
+    ## PORT9505 -0.07 -0.13  0.99  0.75  0.78  0.57  0.57  0.59  0.46     0.74
+    ##          PORT9505
+    ## rf          -0.07
+    ## inf         -0.13
+    ## SPY          0.99
+    ## GOOG         0.75
+    ## AAPL         0.78
+    ## TSLA         0.57
+    ## BTC          0.57
+    ## ETH          0.59
+    ## ADA          0.46
+    ## PORT5050     0.74
+    ## PORT9505     1.00
 
 ### Real Returns
 
@@ -455,16 +466,20 @@ RealEr = colMeans(REAL,na.rm=TRUE)
 RealEr |> round(digits=2)
 ```
 
-    ##       rf      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##    -1.52    10.51    15.79    27.92    43.31    45.10    52.95    49.65    27.81    12.24
+    ##       rf      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA 
+    ##    -1.52    10.51    15.79    27.92    43.31    45.10    52.95    49.65 
+    ## PORT5050 PORT9505 
+    ##    27.81    12.24
 
 ``` r
 Realsigma = apply(REAL,2,sd,na.rm=TRUE)
 Realsigma |> round(digits=2)
 ```
 
-    ##       rf      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     3.89    64.96    91.66    99.31   235.46   227.86   286.19   378.40   131.89    67.65
+    ##       rf      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA 
+    ##     3.89    64.96    91.66    99.31   235.46   227.86   286.19   378.40 
+    ## PORT5050 PORT9505 
+    ##   131.89    67.65
 
 ``` r
 RealRho = cor(REAL,use="pairwise.complete.obs")
@@ -517,16 +532,20 @@ xsEr = colMeans(XS,na.rm=TRUE)
 xsEr |> round(digits=2)
 ```
 
-    ##      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##    12.04    17.32    29.44    44.83    46.63    54.47    51.17    29.33    13.77
+    ##      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 
+    ##    12.04    17.32    29.44    44.83    46.63    54.47    51.17    29.33 
+    ## PORT9505 
+    ##    13.77
 
 ``` r
 xssigma = apply(XS,2,sd,na.rm=TRUE)
 xssigma |> round(digits=2)
 ```
 
-    ##      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##    64.50    91.40    99.05   235.48   226.99   285.65   378.05   131.02    67.08
+    ##      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 
+    ##    64.50    91.40    99.05   235.48   226.99   285.65   378.05   131.02 
+    ## PORT9505 
+    ##    67.08
 
 ``` r
 xsRho = cor(XS,use="pairwise.complete.obs")
@@ -559,8 +578,10 @@ Sharpes_5yr = xsEr/xssigma
 Sharpes_5yr |> round(digits=2)
 ```
 
-    ##      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     0.19     0.19     0.30     0.19     0.21     0.19     0.14     0.22     0.21
+    ##      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 
+    ##     0.19     0.19     0.30     0.19     0.21     0.19     0.14     0.22 
+    ## PORT9505 
+    ##     0.21
 
 ## Betas
 
@@ -617,7 +638,7 @@ summary(GOOGfit)
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   4.3429     7.8619   0.552    0.583    
+    ## (Intercept)   4.3429     7.8620   0.552    0.583    
     ## SPY           1.0779     0.1208   8.923 1.78e-12 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -655,12 +676,12 @@ summary(AAPLfit)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -150.143  -42.547   -6.899   44.112  126.897 
+    ## -150.142  -42.546   -6.899   44.113  126.897 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
     ## (Intercept)  14.6668     7.8896   1.859   0.0681 .  
-    ## SPY           1.2273     0.1212  10.124 1.97e-14 ***
+    ## SPY           1.2273     0.1212  10.124 1.96e-14 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
@@ -852,7 +873,7 @@ summary(PORT5050fit)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Residual standard error: 102.6 on 58 degrees of freedom
-    ## Multiple R-squared:  0.3971, Adjusted R-squared:  0.3867 
+    ## Multiple R-squared:  0.397,  Adjusted R-squared:  0.3867 
     ## F-statistic: 38.19 on 1 and 58 DF,  p-value: 6.866e-08
 
 ``` r

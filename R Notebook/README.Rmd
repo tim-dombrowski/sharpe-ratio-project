@@ -5,20 +5,20 @@ output: github_document
 
 ## R Packages
 
+Below is a list of R packages that will be used throughout this R Notebook. 
+
 * The [fredr package](https://cran.r-project.org/package=fredr) is an R package that wraps the FRED API for easy importing of FRED data into R.
 * The [quantmod package](https://cran.r-project.org/package=quantmod) contains tools for importing and analyzing financial data.
 * The [xts package](https://cran.r-project.org/package=xts) allows for some additional time series functionality.
-* The [reshape2 package](https://cran.r-project.org/package=reshape2) is used to prepare data frames for ggplot2 graphics.
 * The [ggplot2 package](https://cran.r-project.org/package=ggplot2) includes tools for generating graphics and visuals.
 * The [rmarkdown package](https://cran.r-project.org/package=rmarkdown) is used to generate this R Notebook.
 
-The first three lines in this setup chunk automatically install any R packages that you may be missing. One note regarding any code chunk labeled 'setup' is that the R Notebook will automatically run it prior to any other code chunk.
+The first three lines in the setup chunk below will automatically install any R packages that you may be missing. Another observation to make about the code chunk is that it is labeled as 'setup', which is a special name that the R Notebook will recognize and automatically run prior to running any other code chunk. This is useful for loading in packages and setting up other global options that will be used throughout the notebook. 
 
 ```{r setup, results='hide'}
 list.of.packages = c("fredr",
                      "quantmod", 
                      "xts", 
-                     "reshape2", 
                      "ggplot2", 
                      "rmarkdown")
 new.packages = list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
@@ -26,14 +26,7 @@ if(length(new.packages)) install.packages(new.packages)
 library(fredr)
 library(quantmod)
 library(xts)
-library(reshape2)
 library(ggplot2)
-```
-
-Set the width of the output boxes to be a bit wider than usual. \*This will help when outputting matrices.\*
-
-```{r options}
-options(width=120)
 ```
 
 
