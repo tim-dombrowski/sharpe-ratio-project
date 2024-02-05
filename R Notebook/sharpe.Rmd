@@ -1,12 +1,28 @@
 ---
-title: "Sharpe Ratio Comparisons"
+title: "Sharpe Ratios and CAPM Betas"
 date: "Last updated: `r Sys.Date()`"
 output: html_notebook
 ---
 
-## R Packages
+## Preliminary Work: Install/Load Packages
 
-Below is a list of R packages that will be used throughout this R Notebook. 
+To try and ensure that this R Notebook will run successfully, we'll use the [renv package](https://cran.r-project.org/web/packages/renv/index.html) to create a project-specific library of packages. This will allow us to install the packages that we need for this project without affecting any other projects that we may be working on. Additionally, the project library will track the specific versions of the dependency packages so that any updates to those packages will not break this project.
+
+The code chunk below will first install the renv package if it is not already installed. Then we will load the package. Next, we'll use the `restore()` function to install any packages listed in the renv.lock file. Once these packages are installed, we can load them into the R session using the `library()` commands. Below the code chunk, we'll list out the packages that will be used in the project demo. And if you run into any trouble using renv, then you can use the second code chunk below and that should be an even more reliable approach to install the required packages.
+
+```{r setup, results='hide', message=FALSE}
+# Install renv package if not already installed
+if(!"renv" %in% installed.packages()[,"Package"]) install.packages("renv")
+# Load renv package
+library(renv)
+# Use restore() to install any packages listed in the renv.lock file
+renv::restore(clean=TRUE, lockfile="../renv.lock")
+# Load in the packages
+library(fredr)
+library(quantmod)
+library(xts)
+library(ggplot2)
+```
 
 * The [fredr package](https://cran.r-project.org/package=fredr) is an R package that wraps the FRED API for easy importing of FRED data into R.
 * The [quantmod package](https://cran.r-project.org/package=quantmod) contains tools for importing and analyzing financial data.
@@ -14,16 +30,32 @@ Below is a list of R packages that will be used throughout this R Notebook.
 * The [ggplot2 package](https://cran.r-project.org/package=ggplot2) includes tools for generating graphics and visuals.
 * The [rmarkdown package](https://cran.r-project.org/package=rmarkdown) is used to generate this R Notebook.
 
-The first three lines in the setup chunk below will automatically install any R packages that you may be missing. Another observation to make about the code chunk is that it is labeled as 'setup', which is a special name that the R Notebook will recognize and automatically run prior to running any other code chunk. This is useful for loading in packages and setting up other global options that will be used throughout the notebook. 
+Since the rmarkdown functionality is built into RStudio, this one is automatically loaded when we open the RStudio. So no need to use the `library()` function for this one. Another observation to make about the code chunk above is that it is labeled as 'setup', which is a special name, which the R Notebook will recognize and automatically run prior to running any other code chunk. This is useful for loading in packages and setting up other global options that will be used throughout the notebook. 
 
-```{r setup, results='hide'}
+Then if you wish to try and update the versions of the various R packages in the lock file, you can use the `renv::update()` function to update the packages in the project library. However, it is possible that these updates could break the code in this notebook. If so, you may need to adapt the code to work with the updated packages.
+
+My recommendation is to first run through the code using the versions of the packages in the lock file. Then if you want to try and update the packages, you can do so and then run through the code again to see if it still works. If not, you can always revert back to the lock file versions using the `renv::restore()` function.
+
+If you update the packages and get everything working successfully, then you can update the lock file using the `renv::snapshot()` function. This will update the lock file with the versions of the packages that are currently installed in the project library. Then you can commit the updated lock file to the repository so that others can use the updated versions of the packages.
+
+### Alternative Package Installation Code
+
+If you run into any trouble using renv in the code chunk above, then you can use the code chunk below to install the required packages for this analysis. This method will first check if you have already installed the packages. If any are missing, it will then install them. Then it will load the packages into the R session. A potential flaw in this approach compared to using renv is that it will simply install the latest versions of the packages, which could potentially break some of the code in this notebook if any of the updates aren't backwards compatible. 
+
+As long as you have downloaded the entire project repository, the renv chunk above will likely be managing the packages. Thus, the `eval=FALSE` option is used to prevent this chunk from running unless manually executed. So if you only downloaded this one Rmd file, this code chunk should take care of installing the packages for you.
+
+```{r setup2, results='hide', message=FALSE, eval=FALSE}
+# Create list of packages needed for this exercise
 list.of.packages = c("fredr",
                      "quantmod", 
                      "xts", 
                      "ggplot2", 
                      "rmarkdown")
+# Check if any have not yet been installed
 new.packages = list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+# If any need to be installed, install them
 if(length(new.packages)) install.packages(new.packages)
+# Load in the packages
 library(fredr)
 library(quantmod)
 library(xts)
