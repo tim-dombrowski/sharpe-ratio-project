@@ -361,7 +361,7 @@ Er |> round(digits=2)
 ```
 
     ##       rf      inf      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     2.28     4.01    14.53    20.02    32.53    48.32    48.48    56.79    53.44    31.50    16.22
+    ##     2.53     4.09    14.70    20.47    30.29    53.11    36.24    53.58    40.76    25.47    15.78
 
 Now let’s calculate the volatility (standard deviation of returns) for
 each of these assets. This is done by simply calculating the standard
@@ -374,7 +374,7 @@ sigma |> round(digits=2)
 ```
 
     ##       rf      inf      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     1.18     3.94    65.38    93.36   101.82   241.47   236.54   295.17   390.57   135.87    68.15
+    ##     1.36     3.97    63.54    92.81    99.46   239.85   230.02   286.95   385.65   134.88    67.29
 
 Then beyond the individual asset volatilities, another critical
 component of portfolio-level risk is the correlations across the
@@ -389,18 +389,18 @@ started this.*
 cov(FINAL, use="pairwise.complete.obs") |> round(digits=0)
 ```
 
-    ##           rf  inf   SPY  GOOG  AAPL  TSLA   BTC   ETH    ADA PORT5050 PORT9505
-    ## rf         1    0    -5   -12   -21   -82   -28   -62    -75      -16       -6
-    ## inf        0   15   -25   -22   -32   -47  -240  -223   -213     -133      -36
-    ## SPY       -5  -25  4275  4604  5286  8846  6806  9646  10178     5540     4401
-    ## GOOG     -12  -22  4604  8717  5606 11338  8015 11557  17337     6309     4774
-    ## AAPL     -21  -32  5286  5606 10368 17192  7367 11165   7728     6327     5390
-    ## TSLA     -82  -47  8846 11338 17192 58308 20693 34056  24325    14770     9439
-    ## BTC      -28 -240  6806  8015  7367 20693 55952 53988  50521    31379     9263
-    ## ETH      -62 -223  9646 11557 11165 34056 53988 87123  71008    31817    11864
-    ## ADA      -75 -213 10178 17337  7728 24325 50521 71008 152544    30349    12195
-    ## PORT5050 -16 -133  5540  6309  6327 14770 31379 31817  30349    18459     6832
-    ## PORT9505  -6  -36  4401  4774  5390  9439  9263 11864  12195     6832     4644
+    ##            rf  inf   SPY  GOOG  AAPL  TSLA   BTC   ETH    ADA PORT5050 PORT9505
+    ## rf          2    0    -2   -11   -22   -97   -27   -77   -118      -15       -4
+    ## inf         0   16   -19   -22   -41   -64  -176  -197   -217      -97      -27
+    ## SPY        -2  -19  4038  4288  4805  8233  7912 11251  11242     5975     4232
+    ## GOOG      -11  -22  4288  8613  5056 10628  9373 13774  17381     6830     4542
+    ## AAPL      -22  -41  4805  5056  9892 16876  8076 12919   8318     6440     4968
+    ## TSLA      -97  -64  8233 10628 16876 57527 23963 36879  29287    16098     9019
+    ## BTC       -27 -176  7912  9373  8076 23963 52908 51528  51727    30410    10162
+    ## ETH       -77 -197 11251 13774 12919 36879 51528 82339  69226    31390    13265
+    ## ADA      -118 -217 11242 17381  8318 29287 51727 69226 148729    31484    13266
+    ## PORT5050  -15  -97  5975  6830  6440 16098 30410 31390  31484    18193     7197
+    ## PORT9505   -4  -27  4232  4542  4968  9019 10162 13265  13266     7197     4528
 
 The covariance matrix above captures not just the degree of variation in
 each asset return series, but also the degree to which each pair
@@ -413,17 +413,17 @@ Rho |> round(digits=2)
 ```
 
     ##             rf   inf   SPY  GOOG  AAPL  TSLA   BTC   ETH   ADA PORT5050 PORT9505
-    ## rf        1.00  0.03 -0.06 -0.11 -0.18 -0.29 -0.10 -0.18 -0.16    -0.10    -0.07
-    ## inf       0.03  1.00 -0.10 -0.06 -0.08 -0.05 -0.26 -0.19 -0.14    -0.25    -0.13
-    ## SPY      -0.06 -0.10  1.00  0.75  0.79  0.56  0.44  0.50  0.40     0.62     0.99
-    ## GOOG     -0.11 -0.06  0.75  1.00  0.59  0.50  0.36  0.42  0.48     0.50     0.75
-    ## AAPL     -0.18 -0.08  0.79  0.59  1.00  0.70  0.31  0.37  0.19     0.46     0.78
-    ## TSLA     -0.29 -0.05  0.56  0.50  0.70  1.00  0.36  0.48  0.26     0.45     0.57
-    ## BTC      -0.10 -0.26  0.44  0.36  0.31  0.36  1.00  0.77  0.55     0.98     0.57
-    ## ETH      -0.18 -0.19  0.50  0.42  0.37  0.48  0.77  1.00  0.62     0.79     0.59
-    ## ADA      -0.16 -0.14  0.40  0.48  0.19  0.26  0.55  0.62  1.00     0.57     0.46
-    ## PORT5050 -0.10 -0.25  0.62  0.50  0.46  0.45  0.98  0.79  0.57     1.00     0.74
-    ## PORT9505 -0.07 -0.13  0.99  0.75  0.78  0.57  0.57  0.59  0.46     0.74     1.00
+    ## rf        1.00 -0.05 -0.03 -0.09 -0.17 -0.30 -0.09 -0.20 -0.23    -0.08    -0.04
+    ## inf      -0.05  1.00 -0.08 -0.06 -0.10 -0.07 -0.19 -0.17 -0.14    -0.18    -0.10
+    ## SPY      -0.03 -0.08  1.00  0.73  0.76  0.54  0.54  0.62  0.46     0.70     0.99
+    ## GOOG     -0.09 -0.06  0.73  1.00  0.55  0.48  0.44  0.52  0.49     0.55     0.73
+    ## AAPL     -0.17 -0.10  0.76  0.55  1.00  0.71  0.35  0.45  0.22     0.48     0.74
+    ## TSLA     -0.30 -0.07  0.54  0.48  0.71  1.00  0.43  0.54  0.32     0.50     0.56
+    ## BTC      -0.09 -0.19  0.54  0.44  0.35  0.43  1.00  0.78  0.58     0.98     0.66
+    ## ETH      -0.20 -0.17  0.62  0.52  0.45  0.54  0.78  1.00  0.63     0.81     0.69
+    ## ADA      -0.23 -0.14  0.46  0.49  0.22  0.32  0.58  0.63  1.00     0.61     0.51
+    ## PORT5050 -0.08 -0.18  0.70  0.55  0.48  0.50  0.98  0.81  0.61     1.00     0.79
+    ## PORT9505 -0.04 -0.10  0.99  0.73  0.74  0.56  0.66  0.69  0.51     0.79     1.00
 
 ### Real Returns
 
@@ -456,7 +456,7 @@ RealEr |> round(digits=2)
 ```
 
     ##       rf      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##    -1.52    10.51    15.79    27.92    43.31    45.10    52.95    49.65    27.81    12.24
+    ##    -1.35    10.53    16.12    25.75    47.97    32.62    49.51    37.39    21.58    11.64
 
 ``` r
 Realsigma = apply(REAL,2,sd,na.rm=TRUE)
@@ -464,7 +464,7 @@ Realsigma |> round(digits=2)
 ```
 
     ##       rf      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     3.89    64.96    91.66    99.31   235.46   227.86   286.19   378.40   131.89    67.65
+    ##     4.05    62.91    91.03    96.99   233.93   220.26   277.17   373.66   130.26    66.52
 
 ``` r
 RealRho = cor(REAL,use="pairwise.complete.obs")
@@ -472,16 +472,16 @@ RealRho |> round(digits=2)
 ```
 
     ##            rf  SPY GOOG AAPL TSLA  BTC  ETH  ADA PORT5050 PORT9505
-    ## rf       1.00 0.15 0.09 0.08 0.00 0.23 0.15 0.09     0.24     0.18
-    ## SPY      0.15 1.00 0.76 0.80 0.57 0.45 0.51 0.42     0.64     0.99
-    ## GOOG     0.09 0.76 1.00 0.60 0.52 0.38 0.43 0.49     0.51     0.76
-    ## AAPL     0.08 0.80 0.60 1.00 0.71 0.32 0.38 0.21     0.47     0.78
-    ## TSLA     0.00 0.57 0.52 0.71 1.00 0.37 0.49 0.27     0.46     0.59
-    ## BTC      0.23 0.45 0.38 0.32 0.37 1.00 0.78 0.56     0.98     0.58
-    ## ETH      0.15 0.51 0.43 0.38 0.49 0.78 1.00 0.63     0.80     0.60
-    ## ADA      0.09 0.42 0.49 0.21 0.27 0.56 0.63 1.00     0.59     0.47
-    ## PORT5050 0.24 0.64 0.51 0.47 0.46 0.98 0.80 0.59     1.00     0.75
-    ## PORT9505 0.18 0.99 0.76 0.78 0.59 0.58 0.60 0.47     0.75     1.00
+    ## rf       1.00 0.13 0.09 0.11 0.01 0.16 0.11 0.07     0.17     0.15
+    ## SPY      0.13 1.00 0.74 0.77 0.56 0.56 0.63 0.48     0.71     0.99
+    ## GOOG     0.09 0.74 1.00 0.56 0.49 0.46 0.53 0.50     0.57     0.74
+    ## AAPL     0.11 0.77 0.56 1.00 0.71 0.37 0.47 0.24     0.50     0.75
+    ## TSLA     0.01 0.56 0.49 0.71 1.00 0.44 0.55 0.33     0.51     0.57
+    ## BTC      0.16 0.56 0.46 0.37 0.44 1.00 0.78 0.60     0.98     0.66
+    ## ETH      0.11 0.63 0.53 0.47 0.55 0.78 1.00 0.64     0.81     0.70
+    ## ADA      0.07 0.48 0.50 0.24 0.33 0.60 0.64 1.00     0.62     0.53
+    ## PORT5050 0.17 0.71 0.57 0.50 0.51 0.98 0.81 0.62     1.00     0.80
+    ## PORT9505 0.15 0.99 0.74 0.75 0.57 0.66 0.70 0.53     0.80     1.00
 
 ### Excess Returns
 
@@ -518,7 +518,7 @@ xsEr |> round(digits=2)
 ```
 
     ##      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##    12.04    17.32    29.44    44.83    46.63    54.47    51.17    29.33    13.77
+    ##    11.89    17.47    27.10    49.32    33.98    50.86    38.74    22.93    12.99
 
 ``` r
 xssigma = apply(XS,2,sd,na.rm=TRUE)
@@ -526,7 +526,7 @@ xssigma |> round(digits=2)
 ```
 
     ##      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##    64.50    91.40    99.05   235.48   226.99   285.65   378.05   131.02    67.08
+    ##    62.50    90.77    96.64   233.94   219.63   276.75   373.40   129.63    66.05
 
 ``` r
 xsRho = cor(XS,use="pairwise.complete.obs")
@@ -534,15 +534,15 @@ xsRho |> round(digits=2)
 ```
 
     ##           SPY GOOG AAPL TSLA  BTC  ETH  ADA PORT5050 PORT9505
-    ## SPY      1.00 0.76 0.80 0.58 0.44 0.50 0.41     0.63     0.99
-    ## GOOG     0.76 1.00 0.60 0.52 0.37 0.43 0.49     0.51     0.76
-    ## AAPL     0.80 0.60 1.00 0.71 0.31 0.37 0.21     0.46     0.78
-    ## TSLA     0.58 0.52 0.71 1.00 0.36 0.49 0.27     0.46     0.59
-    ## BTC      0.44 0.37 0.31 0.36 1.00 0.78 0.56     0.98     0.57
-    ## ETH      0.50 0.43 0.37 0.49 0.78 1.00 0.63     0.80     0.59
-    ## ADA      0.41 0.49 0.21 0.27 0.56 0.63 1.00     0.59     0.47
-    ## PORT5050 0.63 0.51 0.46 0.46 0.98 0.80 0.59     1.00     0.74
-    ## PORT9505 0.99 0.76 0.78 0.59 0.57 0.59 0.47     0.74     1.00
+    ## SPY      1.00 0.74 0.77 0.56 0.55 0.63 0.47     0.71     0.99
+    ## GOOG     0.74 1.00 0.56 0.49 0.45 0.53 0.50     0.56     0.74
+    ## AAPL     0.77 0.56 1.00 0.72 0.36 0.46 0.23     0.49     0.75
+    ## TSLA     0.56 0.49 0.72 1.00 0.44 0.55 0.33     0.51     0.58
+    ## BTC      0.55 0.45 0.36 0.44 1.00 0.78 0.60     0.98     0.66
+    ## ETH      0.63 0.53 0.46 0.55 0.78 1.00 0.64     0.81     0.69
+    ## ADA      0.47 0.50 0.23 0.33 0.60 0.64 1.00     0.62     0.53
+    ## PORT5050 0.71 0.56 0.49 0.51 0.98 0.81 0.62     1.00     0.80
+    ## PORT9505 0.99 0.74 0.75 0.58 0.66 0.69 0.53     0.80     1.00
 
 ## Sharpe Ratios
 
@@ -560,7 +560,7 @@ Sharpes_5yr |> round(digits=2)
 ```
 
     ##      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     0.19     0.19     0.30     0.19     0.21     0.19     0.14     0.22     0.21
+    ##     0.19     0.19     0.28     0.21     0.15     0.18     0.10     0.18     0.20
 
 ## Betas
 
@@ -613,18 +613,18 @@ summary(GOOGfit)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -122.259  -37.167   -5.904   29.474  144.981 
+    ## -121.502  -36.893   -0.321   32.373  144.817 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   4.3429     7.8619   0.552    0.583    
-    ## SPY           1.0779     0.1208   8.923 1.78e-12 ***
+    ## (Intercept)   4.7767     8.1517   0.586     0.56    
+    ## SPY           1.0683     0.1292   8.271 2.16e-11 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 59.85 on 58 degrees of freedom
-    ## Multiple R-squared:  0.5785, Adjusted R-squared:  0.5713 
-    ## F-statistic: 79.61 on 1 and 58 DF,  p-value: 1.78e-12
+    ## Residual standard error: 62.01 on 58 degrees of freedom
+    ## Multiple R-squared:  0.5412, Adjusted R-squared:  0.5333 
+    ## F-statistic: 68.41 on 1 and 58 DF,  p-value: 2.156e-11
 
 ``` r
 ggplot(XS,aes(x=SPY,y=GOOG))+
@@ -655,18 +655,18 @@ summary(AAPLfit)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -150.143  -42.547   -6.899   44.112  126.897 
+    ## -146.779  -44.542    1.072   44.196  128.909 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  14.6668     7.8896   1.859   0.0681 .  
-    ## SPY           1.2273     0.1212  10.124 1.97e-14 ***
+    ## (Intercept)  13.0104     8.2213   1.583    0.119    
+    ## SPY           1.1859     0.1303   9.103 8.96e-13 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 60.06 on 58 degrees of freedom
-    ## Multiple R-squared:  0.6386, Adjusted R-squared:  0.6324 
-    ## F-statistic: 102.5 on 1 and 58 DF,  p-value: 1.965e-14
+    ## Residual standard error: 62.54 on 58 degrees of freedom
+    ## Multiple R-squared:  0.5883, Adjusted R-squared:  0.5812 
+    ## F-statistic: 82.87 on 1 and 58 DF,  p-value: 8.964e-13
 
 ``` r
 ggplot(XS,aes(x=SPY,y=AAPL))+
@@ -699,18 +699,18 @@ summary(TSLAfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -397.23  -87.89  -13.56  152.19  491.03 
+    ## -406.94  -92.54  -11.17  148.12  489.48 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  19.4671    25.4803   0.764    0.448    
-    ## SPY           2.1071     0.3915   5.382 1.39e-06 ***
+    ## (Intercept)  24.4664    25.7241   0.951    0.345    
+    ## SPY           2.0911     0.4076   5.130  3.5e-06 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 194 on 58 degrees of freedom
-    ## Multiple R-squared:  0.333,  Adjusted R-squared:  0.3215 
-    ## F-statistic: 28.96 on 1 and 58 DF,  p-value: 1.388e-06
+    ## Residual standard error: 195.7 on 58 degrees of freedom
+    ## Multiple R-squared:  0.3121, Adjusted R-squared:  0.3003 
+    ## F-statistic: 26.32 on 1 and 58 DF,  p-value: 3.501e-06
 
 ``` r
 ggplot(XS,aes(x=SPY,y=TSLA))+
@@ -736,18 +736,18 @@ summary(BTCfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -523.28 -127.85   -4.65  124.35  660.17 
+    ## -510.15 -112.21  -10.27  132.46  364.91 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  27.8481    26.9582   1.033  0.30589    
-    ## SPY           1.5600     0.4142   3.766  0.00039 ***
+    ## (Intercept)  11.0497    24.3391   0.454    0.652    
+    ## SPY           1.9290     0.3857   5.002 5.58e-06 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 205.2 on 58 degrees of freedom
-    ## Multiple R-squared:  0.1965, Adjusted R-squared:  0.1826 
-    ## F-statistic: 14.18 on 1 and 58 DF,  p-value: 0.0003896
+    ## Residual standard error: 185.2 on 58 degrees of freedom
+    ## Multiple R-squared:  0.3014, Adjusted R-squared:  0.2893 
+    ## F-statistic: 25.02 on 1 and 58 DF,  p-value: 5.583e-06
 
 ``` r
 ggplot(XS,aes(y=BTC,x=SPY))+
@@ -770,18 +770,18 @@ summary(ETHfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -511.13 -121.71   -7.83  128.86  752.51 
+    ## -411.35 -114.84   -5.19  132.18  681.11 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  27.5780    32.6778   0.844    0.402    
-    ## SPY           2.2343     0.5021   4.450 3.96e-05 ***
+    ## (Intercept)  17.8471    28.5734   0.625    0.535    
+    ## SPY           2.7777     0.4528   6.135 8.15e-08 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 248.8 on 58 degrees of freedom
-    ## Multiple R-squared:  0.2545, Adjusted R-squared:  0.2416 
-    ## F-statistic:  19.8 on 1 and 58 DF,  p-value: 3.958e-05
+    ## Residual standard error: 217.4 on 58 degrees of freedom
+    ## Multiple R-squared:  0.3936, Adjusted R-squared:  0.3831 
+    ## F-statistic: 37.64 on 1 and 58 DF,  p-value: 8.15e-08
 
 ``` r
 ggplot(XS,aes(y=ETH,x=SPY))+
@@ -804,18 +804,18 @@ summary(ADAfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -496.88 -233.73  -73.99  134.53 1434.27 
+    ## -505.85 -213.88  -60.74  121.43 1433.68 
     ## 
     ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)   
-    ## (Intercept)  22.1158    45.6460   0.485  0.62985   
-    ## SPY           2.4137     0.7014   3.441  0.00108 **
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)   5.0183    43.5657   0.115 0.908693    
+    ## SPY           2.8372     0.6903   4.110 0.000126 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 347.5 on 58 degrees of freedom
-    ## Multiple R-squared:  0.1696, Adjusted R-squared:  0.1552 
-    ## F-statistic: 11.84 on 1 and 58 DF,  p-value: 0.00108
+    ## Residual standard error: 331.4 on 58 degrees of freedom
+    ## Multiple R-squared:  0.2256, Adjusted R-squared:  0.2122 
+    ## F-statistic: 16.89 on 1 and 58 DF,  p-value: 0.000126
 
 ``` r
 ggplot(XS,aes(y=ADA,x=SPY))+
@@ -841,19 +841,19 @@ summary(PORT5050fit)
     ## lm(formula = PORT5050 ~ SPY, data = XS)
     ## 
     ## Residuals:
-    ##     Min      1Q  Median      3Q     Max 
-    ## -261.64  -63.93   -2.33   62.18  330.09 
+    ##      Min       1Q   Median       3Q      Max 
+    ## -255.075  -56.103   -5.136   66.231  182.454 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  13.9241    13.4791   1.033    0.306    
-    ## SPY           1.2800     0.2071   6.180 6.87e-08 ***
+    ## (Intercept)   5.5249    12.1695   0.454    0.652    
+    ## SPY           1.4645     0.1928   7.595 2.93e-10 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 102.6 on 58 degrees of freedom
-    ## Multiple R-squared:  0.3971, Adjusted R-squared:  0.3867 
-    ## F-statistic: 38.19 on 1 and 58 DF,  p-value: 6.866e-08
+    ## Residual standard error: 92.58 on 58 degrees of freedom
+    ## Multiple R-squared:  0.4986, Adjusted R-squared:   0.49 
+    ## F-statistic: 57.68 on 1 and 58 DF,  p-value: 2.934e-10
 
 ``` r
 ggplot(XS,aes(y=PORT5050,x=SPY))+
@@ -875,19 +875,19 @@ summary(PORT9505fit)
     ## lm(formula = PORT9505 ~ SPY, data = XS)
     ## 
     ## Residuals:
-    ##     Min      1Q  Median      3Q     Max 
-    ## -26.164  -6.393  -0.233   6.218  33.009 
+    ##      Min       1Q   Median       3Q      Max 
+    ## -25.5075  -5.6103  -0.5136   6.6231  18.2454 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  1.39241    1.34791   1.033    0.306    
-    ## SPY          1.02800    0.02071  49.633   <2e-16 ***
+    ## (Intercept)  0.55249    1.21695   0.454    0.652    
+    ## SPY          1.04645    0.01928  54.268   <2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 10.26 on 58 degrees of freedom
-    ## Multiple R-squared:  0.977,  Adjusted R-squared:  0.9766 
-    ## F-statistic:  2463 on 1 and 58 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 9.258 on 58 degrees of freedom
+    ## Multiple R-squared:  0.9807, Adjusted R-squared:  0.9804 
+    ## F-statistic:  2945 on 1 and 58 DF,  p-value: < 2.2e-16
 
 ``` r
 ggplot(XS,aes(y=PORT9505,x=SPY))+
@@ -920,18 +920,18 @@ summary(ETHBTCfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -282.27 -139.48  -14.23   74.03  514.51 
+    ## -286.86 -110.39  -22.64   66.42  507.03 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   8.9890    23.9967   0.375    0.709    
-    ## BTC           0.9755     0.1044   9.344  3.6e-13 ***
+    ## (Intercept)  17.3983    22.7493   0.765    0.447    
+    ## BTC           0.9849     0.1032   9.543 1.71e-13 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 182 on 58 degrees of freedom
-    ## Multiple R-squared:  0.6009, Adjusted R-squared:  0.594 
-    ## F-statistic: 87.31 on 1 and 58 DF,  p-value: 3.603e-13
+    ## Residual standard error: 174.1 on 58 degrees of freedom
+    ## Multiple R-squared:  0.6109, Adjusted R-squared:  0.6042 
+    ## F-statistic: 91.07 on 1 and 58 DF,  p-value: 1.706e-13
 
 ``` r
 ggplot(XS,aes(y=ETH,x=BTC))+
@@ -954,18 +954,18 @@ summary(ADABTCfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -444.01 -227.24  -52.53  153.05 1191.99 
+    ## -452.16 -185.41  -53.46  138.85 1161.79 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   7.8032    41.7019   0.187    0.852    
-    ## BTC           0.9301     0.1814   5.127 3.54e-06 ***
+    ## (Intercept)   4.2839    39.4946   0.108    0.914    
+    ## BTC           1.0141     0.1792   5.660 4.92e-07 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 316.3 on 58 degrees of freedom
-    ## Multiple R-squared:  0.3119, Adjusted R-squared:    0.3 
-    ## F-statistic: 26.28 on 1 and 58 DF,  p-value: 3.543e-06
+    ## Residual standard error: 302.3 on 58 degrees of freedom
+    ## Multiple R-squared:  0.3558, Adjusted R-squared:  0.3447 
+    ## F-statistic: 32.04 on 1 and 58 DF,  p-value: 4.919e-07
 
 ``` r
 ggplot(XS,aes(y=ADA,x=BTC))+
@@ -990,18 +990,18 @@ summary(ADAETHfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -405.53 -184.78  -62.28  133.35 1454.00 
+    ## -405.51 -180.77  -43.74  126.59 1457.52 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   6.0248    39.0823   0.154    0.878    
-    ## ETH           0.8288     0.1355   6.117 8.74e-08 ***
+    ## (Intercept)  -4.9817    38.1121  -0.131    0.896    
+    ## ETH           0.8596     0.1365   6.295 4.42e-08 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 297.3 on 58 degrees of freedom
-    ## Multiple R-squared:  0.3921, Adjusted R-squared:  0.3817 
-    ## F-statistic: 37.42 on 1 and 58 DF,  p-value: 8.739e-08
+    ## Residual standard error: 290.3 on 58 degrees of freedom
+    ## Multiple R-squared:  0.4059, Adjusted R-squared:  0.3957 
+    ## F-statistic: 39.63 on 1 and 58 DF,  p-value: 4.42e-08
 
 ``` r
 ggplot(XS,aes(y=ADA,x=ETH))+
@@ -1032,18 +1032,18 @@ summary(TSLABTCfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -553.83 -118.01   12.81  149.97  591.46 
+    ## -560.48 -133.07    9.14  141.92  586.90 
     ## 
     ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)   
-    ## (Intercept)  27.2069    29.1605   0.933  0.35469   
-    ## BTC           0.3780     0.1269   2.979  0.00421 **
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)  33.3890    27.6821   1.206 0.232654    
+    ## BTC           0.4689     0.1256   3.734 0.000432 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 221.2 on 58 degrees of freedom
-    ## Multiple R-squared:  0.1327, Adjusted R-squared:  0.1178 
-    ## F-statistic: 8.877 on 1 and 58 DF,  p-value: 0.004212
+    ## Residual standard error: 211.9 on 58 degrees of freedom
+    ## Multiple R-squared:  0.1938, Adjusted R-squared:  0.1799 
+    ## F-statistic: 13.94 on 1 and 58 DF,  p-value: 0.0004324
 
 ``` r
 ggplot(XS,aes(y=TSLA,x=BTC))+
@@ -1077,14 +1077,14 @@ cor(subXS1$BTC,subXS1$TSLA)
 ```
 
     ##          TSLA
-    ## BTC 0.2783652
+    ## BTC 0.5853465
 
 ``` r
 cor(subXS2$BTC,subXS2$TSLA)
 ```
 
     ##          TSLA
-    ## BTC 0.3905702
+    ## BTC 0.3394333
 
 ``` r
 TSLABTCfit1 = lm(TSLA~BTC,data=subXS1)
@@ -1098,16 +1098,18 @@ summary(TSLABTCfit1)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -563.28 -171.42   29.35  194.38  538.11 
+    ## -452.58 -149.56   35.44  139.43  465.05 
     ## 
     ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)
-    ## (Intercept)  82.9034    58.0915   1.427    0.168
-    ## BTC           0.3106     0.2285   1.359    0.188
+    ##             Estimate Std. Error t value Pr(>|t|)  
+    ## (Intercept) 149.4469    59.4758   2.513   0.0248 *
+    ## BTC           0.6341     0.2347   2.701   0.0172 *
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 262.2 on 22 degrees of freedom
-    ## Multiple R-squared:  0.07749,    Adjusted R-squared:  0.03555 
-    ## F-statistic: 1.848 on 1 and 22 DF,  p-value: 0.1878
+    ## Residual standard error: 225.7 on 14 degrees of freedom
+    ## Multiple R-squared:  0.3426, Adjusted R-squared:  0.2957 
+    ## F-statistic: 7.297 on 1 and 14 DF,  p-value: 0.01721
 
 ``` r
 summary(TSLABTCfit2)
@@ -1118,19 +1120,19 @@ summary(TSLABTCfit2)
     ## lm(formula = TSLA ~ BTC, data = subXS2)
     ## 
     ## Residuals:
-    ##    Min     1Q Median     3Q    Max 
-    ## -521.6  -84.3    6.8  102.4  290.3 
+    ##     Min      1Q  Median      3Q     Max 
+    ## -523.23  -86.01    0.49  117.90  291.82 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)  
-    ## (Intercept)  -5.3803    31.6610  -0.170   0.8661  
-    ## BTC           0.3693     0.1493   2.474   0.0185 *
+    ## (Intercept) -11.0233    28.1814  -0.391   0.6977  
+    ## BTC           0.3181     0.1360   2.339   0.0242 *
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 189.7 on 34 degrees of freedom
-    ## Multiple R-squared:  0.1525, Adjusted R-squared:  0.1276 
-    ## F-statistic:  6.12 on 1 and 34 DF,  p-value: 0.01852
+    ## Residual standard error: 186.3 on 42 degrees of freedom
+    ## Multiple R-squared:  0.1152, Adjusted R-squared:  0.09415 
+    ## F-statistic: 5.469 on 1 and 42 DF,  p-value: 0.02419
 
 ``` r
 ggplot(subXS1,aes(y=TSLA,x=BTC))+
