@@ -613,7 +613,7 @@ summary(GOOGfit)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -121.502  -36.893   -0.321   32.373  144.817 
+    ## -121.502  -36.893   -0.321   32.373  144.818 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
@@ -655,7 +655,7 @@ summary(AAPLfit)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -146.779  -44.542    1.072   44.196  128.909 
+    ## -146.780  -44.541    1.072   44.195  128.908 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
