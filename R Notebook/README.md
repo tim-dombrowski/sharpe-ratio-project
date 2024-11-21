@@ -32,12 +32,23 @@ list.of.packages = c("fredr",
 new.packages = list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 library(fredr)
+```
+
+    ## Warning: package 'fredr' was built under R version 4.4.2
+
+``` r
 library(quantmod)
 ```
 
+    ## Warning: package 'quantmod' was built under R version 4.4.2
+
     ## Loading required package: xts
 
+    ## Warning: package 'xts' was built under R version 4.4.2
+
     ## Loading required package: zoo
+
+    ## Warning: package 'zoo' was built under R version 4.4.2
 
     ## 
     ## Attaching package: 'zoo'
@@ -48,6 +59,8 @@ library(quantmod)
 
     ## Loading required package: TTR
 
+    ## Warning: package 'TTR' was built under R version 4.4.2
+
     ## Registered S3 method overwritten by 'quantmod':
     ##   method            from
     ##   as.zoo.data.frame zoo
@@ -55,8 +68,15 @@ library(quantmod)
 ``` r
 library(xts)
 library(reshape2)
+```
+
+    ## Warning: package 'reshape2' was built under R version 4.4.2
+
+``` r
 library(ggplot2)
 ```
+
+    ## Warning: package 'ggplot2' was built under R version 4.4.2
 
 Set the width of the output boxes to be a bit wider than usual. \*This
 will help when outputting matrices.\*
@@ -145,9 +165,9 @@ requests a monthly series, rather than the default daily frequency.
 
 ``` r
 tickers = c("SPY",
-            "GOOG",
-            "AAPL",
+            "NVDA",
             "TSLA",
+            "MSTR",
             "BTC-USD",
             "ETH-USD",
             "ADA-USD")
@@ -168,26 +188,26 @@ ETH = `ETH-USD`
 ADA = `ADA-USD`
 # Compute returns
 SPY$Return = c(NA, diff(log(as.numeric(SPY$SPY.Adjusted))))
-GOOG$Return = c(NA, diff(log(as.numeric(GOOG$GOOG.Adjusted))))
-AAPL$Return = c(NA, diff(log(as.numeric(AAPL$AAPL.Adjusted))))
+NVDA$Return = c(NA, diff(log(as.numeric(NVDA$NVDA.Adjusted))))
 TSLA$Return = c(NA, diff(log(as.numeric(TSLA$TSLA.Adjusted))))
+MSTR$Return = c(NA, diff(log(as.numeric(MSTR$MSTR.Adjusted))))
 BTC$Return = c(NA, diff(log(as.numeric(BTC$`BTC-USD.Adjusted`))))
 ETH$Return = c(NA, diff(log(as.numeric(ETH$`ETH-USD.Adjusted`))))
 ADA$Return = c(NA, diff(log(as.numeric(ADA$`ADA-USD.Adjusted`))))
 # Annualize returns
 SPY$SPY = SPY$Return*12*100
-GOOG$GOOG = GOOG$Return*12*100
-AAPL$AAPL = AAPL$Return*12*100
+NVDA$NVDA = NVDA$Return*12*100
 TSLA$TSLA = TSLA$Return*12*100
+MSTR$MSTR = MSTR$Return*12*100
 BTC$BTC = BTC$Return*12*100
 ETH$ETH = ETH$Return*12*100
 ADA$ADA = ADA$Return*12*100
 # Merge to ALL
 ALL = merge(ALL, 
             SPY$SPY,
-            GOOG$GOOG,
-            AAPL$AAPL,
+            NVDA$NVDA,
             TSLA$TSLA,
+            MSTR$MSTR,
             BTC$`BTC`,
             ETH$`ETH`,
             ADA$`ADA`)
@@ -270,28 +290,28 @@ ggplot(FINAL,aes(x=Index,y=SPY))+
 ![](README_files/figure-gfm/otherplots-2.png)<!-- -->
 
 ``` r
-ggplot(FINAL,aes(x=Index,y=GOOG))+
+ggplot(FINAL,aes(x=Index,y=NVDA))+
   geom_col()+
   xlab("")+
-  ggtitle("GOOG Returns")
+  ggtitle("NVDA Returns")
 ```
 
 ![](README_files/figure-gfm/otherplots-3.png)<!-- -->
-
-``` r
-ggplot(FINAL,aes(x=Index,y=AAPL))+
-  geom_col()+
-  xlab("")+
-  ggtitle("AAPL Returns")
-```
-
-![](README_files/figure-gfm/otherplots-4.png)<!-- -->
 
 ``` r
 ggplot(FINAL,aes(x=Index,y=TSLA))+
   geom_col()+
   xlab("")+
   ggtitle("TSLA Returns")
+```
+
+![](README_files/figure-gfm/otherplots-4.png)<!-- -->
+
+``` r
+ggplot(FINAL,aes(x=Index,y=MSTR))+
+  geom_col()+
+  xlab("")+
+  ggtitle("MSTR Returns")
 ```
 
 ![](README_files/figure-gfm/otherplots-5.png)<!-- -->
@@ -360,8 +380,8 @@ Er = colMeans(FINAL,na.rm=TRUE)
 Er |> round(digits=2)
 ```
 
-    ##       rf      inf      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     2.53     4.09    14.70    20.47    30.29    53.11    36.24    53.58    40.76    25.47    15.78
+    ##       rf      inf      SPY     NVDA     TSLA     MSTR      BTC      ETH      ADA PORT5050 PORT9505 
+    ##     2.61     4.09    14.11    65.58    49.53    55.39    40.65    52.31    42.11    27.38    15.44
 
 Now let’s calculate the volatility (standard deviation of returns) for
 each of these assets. This is done by simply calculating the standard
@@ -373,8 +393,8 @@ sigma = apply(FINAL,2,sd,na.rm=TRUE)
 sigma |> round(digits=2)
 ```
 
-    ##       rf      inf      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     1.36     3.97    63.54    92.81    99.46   239.85   230.02   286.95   385.65   134.88    67.29
+    ##       rf      inf      SPY     NVDA     TSLA     MSTR      BTC      ETH      ADA PORT5050 PORT9505 
+    ##     1.37     3.97    63.57   167.49   238.90   330.10   228.34   287.19   385.12   134.10    67.27
 
 Then beyond the individual asset volatilities, another critical
 component of portfolio-level risk is the correlations across the
@@ -389,18 +409,18 @@ started this.*
 cov(FINAL, use="pairwise.complete.obs") |> round(digits=0)
 ```
 
-    ##            rf  inf   SPY  GOOG  AAPL  TSLA   BTC   ETH    ADA PORT5050 PORT9505
-    ## rf          2    0    -2   -11   -22   -97   -27   -77   -118      -15       -4
-    ## inf         0   16   -19   -22   -41   -64  -176  -197   -217      -97      -27
-    ## SPY        -2  -19  4038  4288  4805  8233  7912 11251  11242     5975     4232
-    ## GOOG      -11  -22  4288  8613  5056 10628  9373 13774  17381     6830     4542
-    ## AAPL      -22  -41  4805  5056  9892 16876  8076 12919   8318     6440     4968
-    ## TSLA      -97  -64  8233 10628 16876 57527 23963 36879  29287    16098     9019
-    ## BTC       -27 -176  7912  9373  8076 23963 52908 51528  51727    30410    10162
-    ## ETH       -77 -197 11251 13774 12919 36879 51528 82339  69226    31390    13265
-    ## ADA      -118 -217 11242 17381  8318 29287 51727 69226 148729    31484    13266
-    ## PORT5050  -15  -97  5975  6830  6440 16098 30410 31390  31484    18193     7197
-    ## PORT9505   -4  -27  4232  4542  4968  9019 10162 13265  13266     7197     4528
+    ##            rf  inf   SPY  NVDA  TSLA   MSTR   BTC   ETH    ADA PORT5050 PORT9505
+    ## rf          2    0    -3     9   -92     20   -26   -80   -123      -14       -4
+    ## inf         0   16   -19   -44   -64   -179  -186  -195   -224     -102      -27
+    ## SPY        -3  -19  4041  6641  8212  10964  7873 11292  11301     5957     4233
+    ## NVDA        9  -44  6641 28054 17104  26241 11968 21184  16580     9305     6908
+    ## TSLA      -92  -64  8212 17104 57075  32695 23666 37134  29632    15939     8985
+    ## MSTR       20 -179 10964 26241 32695 108966 54516 62616  63942    32740    13142
+    ## BTC       -26 -186  7873 11968 23666  54516 52141 51412  50698    30007    10086
+    ## ETH       -80 -195 11292 21184 37134  62616 51412 82479  69459    31352    13298
+    ## ADA      -123 -224 11301 16580 29632  63942 50698 69459 148317    30999    13271
+    ## PORT5050  -14 -102  5957  9305 15939  32740 30007 31352  30999    17982     7160
+    ## PORT9505   -4  -27  4233  6908  8985  13142 10086 13298  13271     7160     4525
 
 The covariance matrix above captures not just the degree of variation in
 each asset return series, but also the degree to which each pair
@@ -412,18 +432,18 @@ Rho = cor(FINAL,use="pairwise.complete.obs")
 Rho |> round(digits=2)
 ```
 
-    ##             rf   inf   SPY  GOOG  AAPL  TSLA   BTC   ETH   ADA PORT5050 PORT9505
-    ## rf        1.00 -0.05 -0.03 -0.09 -0.17 -0.30 -0.09 -0.20 -0.23    -0.08    -0.04
-    ## inf      -0.05  1.00 -0.08 -0.06 -0.10 -0.07 -0.19 -0.17 -0.14    -0.18    -0.10
-    ## SPY      -0.03 -0.08  1.00  0.73  0.76  0.54  0.54  0.62  0.46     0.70     0.99
-    ## GOOG     -0.09 -0.06  0.73  1.00  0.55  0.48  0.44  0.52  0.49     0.55     0.73
-    ## AAPL     -0.17 -0.10  0.76  0.55  1.00  0.71  0.35  0.45  0.22     0.48     0.74
-    ## TSLA     -0.30 -0.07  0.54  0.48  0.71  1.00  0.43  0.54  0.32     0.50     0.56
-    ## BTC      -0.09 -0.19  0.54  0.44  0.35  0.43  1.00  0.78  0.58     0.98     0.66
-    ## ETH      -0.20 -0.17  0.62  0.52  0.45  0.54  0.78  1.00  0.63     0.81     0.69
-    ## ADA      -0.23 -0.14  0.46  0.49  0.22  0.32  0.58  0.63  1.00     0.61     0.51
-    ## PORT5050 -0.08 -0.18  0.70  0.55  0.48  0.50  0.98  0.81  0.61     1.00     0.79
-    ## PORT9505 -0.04 -0.10  0.99  0.73  0.74  0.56  0.66  0.69  0.51     0.79     1.00
+    ##             rf   inf   SPY  NVDA  TSLA  MSTR   BTC   ETH   ADA PORT5050 PORT9505
+    ## rf        1.00 -0.07 -0.03  0.04 -0.28  0.04 -0.08 -0.20 -0.23    -0.08    -0.04
+    ## inf      -0.07  1.00 -0.07 -0.07 -0.07 -0.14 -0.21 -0.17 -0.15    -0.19    -0.10
+    ## SPY      -0.03 -0.07  1.00  0.62  0.54  0.52  0.54  0.62  0.46     0.70     0.99
+    ## NVDA      0.04 -0.07  0.62  1.00  0.43  0.47  0.31  0.44  0.26     0.41     0.61
+    ## TSLA     -0.28 -0.07  0.54  0.43  1.00  0.41  0.43  0.54  0.32     0.50     0.56
+    ## MSTR      0.04 -0.14  0.52  0.47  0.41  1.00  0.72  0.66  0.50     0.74     0.59
+    ## BTC      -0.08 -0.21  0.54  0.31  0.43  0.72  1.00  0.78  0.58     0.98     0.66
+    ## ETH      -0.20 -0.17  0.62  0.44  0.54  0.66  0.78  1.00  0.63     0.81     0.69
+    ## ADA      -0.23 -0.15  0.46  0.26  0.32  0.50  0.58  0.63  1.00     0.60     0.51
+    ## PORT5050 -0.08 -0.19  0.70  0.41  0.50  0.74  0.98  0.81  0.60     1.00     0.79
+    ## PORT9505 -0.04 -0.10  0.99  0.61  0.56  0.59  0.66  0.69  0.51     0.79     1.00
 
 ### Real Returns
 
@@ -435,9 +455,9 @@ to ‘real’ returns.
 REAL = xts(order.by=index(FINAL))
 REAL$rf = (FINAL$rf-FINAL$inf)/(1+(FINAL$inf/100))
 REAL$SPY = (FINAL$SPY-FINAL$inf)/(1+(FINAL$inf/100))
-REAL$GOOG = (FINAL$GOOG-FINAL$inf)/(1+(FINAL$inf/100))
-REAL$AAPL = (FINAL$AAPL-FINAL$inf)/(1+(FINAL$inf/100))
+REAL$NVDA = (FINAL$NVDA-FINAL$inf)/(1+(FINAL$inf/100))
 REAL$TSLA = (FINAL$TSLA-FINAL$inf)/(1+(FINAL$inf/100))
+REAL$MSTR = (FINAL$MSTR-FINAL$inf)/(1+(FINAL$inf/100))
 REAL$BTC = (FINAL$BTC-FINAL$inf)/(1+(FINAL$inf/100))
 REAL$ETH = (FINAL$ETH-FINAL$inf)/(1+(FINAL$inf/100))
 REAL$ADA = (FINAL$ADA-FINAL$inf)/(1+(FINAL$inf/100))
@@ -455,33 +475,33 @@ RealEr = colMeans(REAL,na.rm=TRUE)
 RealEr |> round(digits=2)
 ```
 
-    ##       rf      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##    -1.35    10.53    16.12    25.75    47.97    32.62    49.51    37.39    21.58    11.64
+    ##       rf      SPY     NVDA     TSLA     MSTR      BTC      ETH      ADA PORT5050 PORT9505 
+    ##    -1.28     9.97    59.71    44.53    51.01    36.96    48.27    38.74    23.46    11.32
 
 ``` r
 Realsigma = apply(REAL,2,sd,na.rm=TRUE)
 Realsigma |> round(digits=2)
 ```
 
-    ##       rf      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     4.05    62.91    91.03    96.99   233.93   220.26   277.17   373.66   130.26    66.52
+    ##       rf      SPY     NVDA     TSLA     MSTR      BTC      ETH      ADA PORT5050 PORT9505 
+    ##     4.08    62.93   160.55   233.07   316.16   218.60   277.41   373.13   129.51    66.50
 
 ``` r
 RealRho = cor(REAL,use="pairwise.complete.obs")
 RealRho |> round(digits=2)
 ```
 
-    ##            rf  SPY GOOG AAPL TSLA  BTC  ETH  ADA PORT5050 PORT9505
-    ## rf       1.00 0.13 0.09 0.11 0.01 0.16 0.11 0.07     0.17     0.15
-    ## SPY      0.13 1.00 0.74 0.77 0.56 0.56 0.63 0.48     0.71     0.99
-    ## GOOG     0.09 0.74 1.00 0.56 0.49 0.46 0.53 0.50     0.57     0.74
-    ## AAPL     0.11 0.77 0.56 1.00 0.71 0.37 0.47 0.24     0.50     0.75
-    ## TSLA     0.01 0.56 0.49 0.71 1.00 0.44 0.55 0.33     0.51     0.57
-    ## BTC      0.16 0.56 0.46 0.37 0.44 1.00 0.78 0.60     0.98     0.66
-    ## ETH      0.11 0.63 0.53 0.47 0.55 0.78 1.00 0.64     0.81     0.70
-    ## ADA      0.07 0.48 0.50 0.24 0.33 0.60 0.64 1.00     0.62     0.53
-    ## PORT5050 0.17 0.71 0.57 0.50 0.51 0.98 0.81 0.62     1.00     0.80
-    ## PORT9505 0.15 0.99 0.74 0.75 0.57 0.66 0.70 0.53     0.80     1.00
+    ##            rf  SPY NVDA TSLA MSTR  BTC  ETH  ADA PORT5050 PORT9505
+    ## rf       1.00 0.13 0.11 0.01 0.14 0.18 0.11 0.07     0.18     0.15
+    ## SPY      0.13 1.00 0.62 0.56 0.52 0.56 0.63 0.48     0.71     0.99
+    ## NVDA     0.11 0.62 1.00 0.43 0.47 0.31 0.43 0.26     0.41     0.61
+    ## TSLA     0.01 0.56 0.43 1.00 0.41 0.44 0.55 0.34     0.51     0.57
+    ## MSTR     0.14 0.52 0.47 0.41 1.00 0.72 0.66 0.51     0.73     0.58
+    ## BTC      0.18 0.56 0.31 0.44 0.72 1.00 0.79 0.59     0.98     0.67
+    ## ETH      0.11 0.63 0.43 0.55 0.66 0.79 1.00 0.64     0.82     0.70
+    ## ADA      0.07 0.48 0.26 0.34 0.51 0.59 0.64 1.00     0.62     0.53
+    ## PORT5050 0.18 0.71 0.41 0.51 0.73 0.98 0.82 0.62     1.00     0.80
+    ## PORT9505 0.15 0.99 0.61 0.57 0.58 0.67 0.70 0.53     0.80     1.00
 
 ### Excess Returns
 
@@ -502,9 +522,9 @@ competitor, ETH.
 ``` r
 XS = xts(order.by=index(FINAL))
 XS$SPY = REAL$SPY-REAL$rf
-XS$GOOG = REAL$GOOG-REAL$rf
-XS$AAPL = REAL$AAPL-REAL$rf
+XS$NVDA = REAL$NVDA-REAL$rf
 XS$TSLA = REAL$TSLA-REAL$rf
+XS$MSTR = REAL$MSTR-REAL$rf
 XS$BTC = REAL$BTC-REAL$rf
 XS$ETH = REAL$ETH-REAL$rf
 XS$ADA = REAL$ADA-REAL$rf
@@ -517,32 +537,32 @@ xsEr = colMeans(XS,na.rm=TRUE)
 xsEr |> round(digits=2)
 ```
 
-    ##      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##    11.89    17.47    27.10    49.32    33.98    50.86    38.74    22.93    12.99
+    ##      SPY     NVDA     TSLA     MSTR      BTC      ETH      ADA PORT5050 PORT9505 
+    ##    11.25    60.98    45.81    52.29    38.24    49.55    40.02    24.74    12.60
 
 ``` r
 xssigma = apply(XS,2,sd,na.rm=TRUE)
 xssigma |> round(digits=2)
 ```
 
-    ##      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##    62.50    90.77    96.64   233.94   219.63   276.75   373.40   129.63    66.05
+    ##      SPY     NVDA     TSLA     MSTR      BTC      ETH      ADA PORT5050 PORT9505 
+    ##    62.53   160.14   233.06   315.61   217.92   277.01   372.87   128.84    66.03
 
 ``` r
 xsRho = cor(XS,use="pairwise.complete.obs")
 xsRho |> round(digits=2)
 ```
 
-    ##           SPY GOOG AAPL TSLA  BTC  ETH  ADA PORT5050 PORT9505
-    ## SPY      1.00 0.74 0.77 0.56 0.55 0.63 0.47     0.71     0.99
-    ## GOOG     0.74 1.00 0.56 0.49 0.45 0.53 0.50     0.56     0.74
-    ## AAPL     0.77 0.56 1.00 0.72 0.36 0.46 0.23     0.49     0.75
-    ## TSLA     0.56 0.49 0.72 1.00 0.44 0.55 0.33     0.51     0.58
-    ## BTC      0.55 0.45 0.36 0.44 1.00 0.78 0.60     0.98     0.66
-    ## ETH      0.63 0.53 0.46 0.55 0.78 1.00 0.64     0.81     0.69
-    ## ADA      0.47 0.50 0.23 0.33 0.60 0.64 1.00     0.62     0.53
-    ## PORT5050 0.71 0.56 0.49 0.51 0.98 0.81 0.62     1.00     0.80
-    ## PORT9505 0.99 0.74 0.75 0.58 0.66 0.69 0.53     0.80     1.00
+    ##           SPY NVDA TSLA MSTR  BTC  ETH  ADA PORT5050 PORT9505
+    ## SPY      1.00 0.61 0.56 0.51 0.55 0.63 0.48     0.71     0.99
+    ## NVDA     0.61 1.00 0.43 0.46 0.30 0.43 0.26     0.41     0.60
+    ## TSLA     0.56 0.43 1.00 0.41 0.44 0.55 0.34     0.51     0.58
+    ## MSTR     0.51 0.46 0.41 1.00 0.72 0.65 0.50     0.73     0.58
+    ## BTC      0.55 0.30 0.44 0.72 1.00 0.79 0.59     0.98     0.66
+    ## ETH      0.63 0.43 0.55 0.65 0.79 1.00 0.64     0.82     0.70
+    ## ADA      0.48 0.26 0.34 0.50 0.59 0.64 1.00     0.61     0.53
+    ## PORT5050 0.71 0.41 0.51 0.73 0.98 0.82 0.61     1.00     0.80
+    ## PORT9505 0.99 0.60 0.58 0.58 0.66 0.70 0.53     0.80     1.00
 
 ## Sharpe Ratios
 
@@ -559,8 +579,8 @@ Sharpes_5yr = xsEr/xssigma
 Sharpes_5yr |> round(digits=2)
 ```
 
-    ##      SPY     GOOG     AAPL     TSLA      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     0.19     0.19     0.28     0.21     0.15     0.18     0.10     0.18     0.20
+    ##      SPY     NVDA     TSLA     MSTR      BTC      ETH      ADA PORT5050 PORT9505 
+    ##     0.18     0.38     0.20     0.17     0.18     0.18     0.11     0.19     0.19
 
 ## Betas
 
@@ -581,112 +601,68 @@ We then use our data to estimate $\alpha$ and $\beta$, and then our
 model errors are represented by $\epsilon$.
 
 To fit the CAPM relationship, we estimate a linear regression of the
-GOOG excess returns on the market (S&P500) excess returns. The summary
+NVDA excess returns on the market (S&P500) excess returns. The summary
 function prints the regression estimates/results, and then ggplot lets
-us easily plot the relationship. For GOOG, we get a beta estimate
+us easily plot the relationship. For NVDA, we get a beta estimate
 reasonably close to 1, which suggests that Alphabet has roughly an equal
 level of systematic risk as the market as a whole (or at least as
 measured by the S&P 500). Thus, the interpretation is that if the market
-goes up or down by 1%, we would expect that GOOG would also increase or
+goes up or down by 1%, we would expect that NVDA would also increase or
 decrease by the same amount (percentage-wise).
 
 Then let’s make note of the strength of the fit with the $R^2>0.5$.
-Theoretically, this would indicate the percent of variation in GOOG that
-is explained by broader market movements, but since GOOG is a major
+Theoretically, this would indicate the percent of variation in NVDA that
+is explained by broader market movements, but since NVDA is a major
 component of the S&P 500, that might not be the best interpretation for
 this particular example. In other words, it shouldn’t be surprising that
-the beta for GOOG is close to 1.
+the beta for NVDA is close to 1.
 
 The last bit of info that we will make note of from these results is the
 `(Intercept)` coefficient. In CAPM, this estimate of ‘alpha’ represents
 the average annual outperformance of the asset over the market. Thus,
-GOOG has outperformed the market on average over the past 5 years.
+NVDA has outperformed the market on average over the past 5 years.
 
 ``` r
-GOOGfit = lm(GOOG~SPY,data=XS)
-summary(GOOGfit)
+NVDAfit = lm(NVDA~SPY,data=XS)
+summary(NVDAfit)
 ```
 
     ## 
     ## Call:
-    ## lm(formula = GOOG ~ SPY, data = XS)
+    ## lm(formula = NVDA ~ SPY, data = XS)
     ## 
     ## Residuals:
-    ##      Min       1Q   Median       3Q      Max 
-    ## -121.502  -36.893   -0.321   32.373  144.818 
+    ##     Min      1Q  Median      3Q     Max 
+    ## -323.24  -85.07  -19.53   66.58  317.31 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   4.7767     8.1517   0.586     0.56    
-    ## SPY           1.0683     0.1292   8.271 2.16e-11 ***
+    ## (Intercept)  43.3059    16.7288   2.589   0.0122 *  
+    ## SPY           1.5721     0.2654   5.922 1.83e-07 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 62.01 on 58 degrees of freedom
-    ## Multiple R-squared:  0.5412, Adjusted R-squared:  0.5333 
-    ## F-statistic: 68.41 on 1 and 58 DF,  p-value: 2.156e-11
+    ## Residual standard error: 127.5 on 58 degrees of freedom
+    ## Multiple R-squared:  0.3768, Adjusted R-squared:  0.3661 
+    ## F-statistic: 35.07 on 1 and 58 DF,  p-value: 1.83e-07
 
 ``` r
-ggplot(XS,aes(x=SPY,y=GOOG))+
+ggplot(XS,aes(x=SPY,y=NVDA))+
   geom_point()+
   geom_smooth(method="lm")
 ```
 
     ## `geom_smooth()` using formula = 'y ~ x'
 
-![](README_files/figure-gfm/googfit-1.png)<!-- -->
+![](README_files/figure-gfm/NVDAfit-1.png)<!-- -->
 
 Now with Apple, we get a slightly larger beta, which suggests that a 1%
 increase in the market is expected to correspond with an amplified
-increase in the price of AAPL. Similarly, a 1% decline in the market
+increase in the price of TSLA. Similarly, a 1% decline in the market
 would be expected to correlate with a larger decrease in the price of
-AAPL. Along with this larger systematic risk, the alpha estimate shows
-that AAPL has compensated for this higher risk with a higher average
+TSLA. Along with this larger systematic risk, the alpha estimate shows
+that TSLA has compensated for this higher risk with a higher average
 return over the market.
-
-``` r
-AAPLfit = lm(AAPL~SPY,data=XS)
-summary(AAPLfit)
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = AAPL ~ SPY, data = XS)
-    ## 
-    ## Residuals:
-    ##      Min       1Q   Median       3Q      Max 
-    ## -146.780  -44.541    1.072   44.195  128.908 
-    ## 
-    ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  13.0104     8.2213   1.583    0.119    
-    ## SPY           1.1859     0.1303   9.103 8.96e-13 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 62.54 on 58 degrees of freedom
-    ## Multiple R-squared:  0.5883, Adjusted R-squared:  0.5812 
-    ## F-statistic: 82.87 on 1 and 58 DF,  p-value: 8.964e-13
-
-``` r
-ggplot(XS,aes(x=SPY,y=AAPL))+
-  geom_point()+
-  geom_smooth(method="lm")
-```
-
-    ## `geom_smooth()` using formula = 'y ~ x'
-
-![](README_files/figure-gfm/aaplfit-1.png)<!-- -->
-
-With Tesla, we see there is a much larger beta estimate. This also
-corresponds with a larger alpha suggesting this increased systematic
-risk has been compensated well. However, the strength of this
-relationship is weaker than the previous two examples. Although Tesla is
-still a fairly recent addition to the S&P 500 (late-2020), it has
-quickly jumped into one of the top 10 spots in terms of market
-capitalization (and thus, weight in the index). However, it remains
-smaller than both Alphabet and Apple, so the weaker relationship is not
-surprising.
 
 ``` r
 TSLAfit = lm(TSLA~SPY,data=XS)
@@ -699,18 +675,18 @@ summary(TSLAfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -406.94  -92.54  -11.17  148.12  489.48 
+    ## -405.45  -90.34  -16.27  150.67  491.60 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  24.4664    25.7241   0.951    0.345    
-    ## SPY           2.0911     0.4076   5.130  3.5e-06 ***
+    ## (Intercept)  22.3749    25.5718   0.875    0.385    
+    ## SPY           2.0835     0.4058   5.135 3.44e-06 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 195.7 on 58 degrees of freedom
-    ## Multiple R-squared:  0.3121, Adjusted R-squared:  0.3003 
-    ## F-statistic: 26.32 on 1 and 58 DF,  p-value: 3.501e-06
+    ## Residual standard error: 194.9 on 58 degrees of freedom
+    ## Multiple R-squared:  0.3125, Adjusted R-squared:  0.3007 
+    ## F-statistic: 26.37 on 1 and 58 DF,  p-value: 3.442e-06
 
 ``` r
 ggplot(XS,aes(x=SPY,y=TSLA))+
@@ -720,7 +696,51 @@ ggplot(XS,aes(x=SPY,y=TSLA))+
 
     ## `geom_smooth()` using formula = 'y ~ x'
 
-![](README_files/figure-gfm/tslafit-1.png)<!-- -->
+![](README_files/figure-gfm/TSLAfit-1.png)<!-- -->
+
+With Tesla, we see there is a much larger beta estimate. This also
+corresponds with a larger alpha suggesting this increased systematic
+risk has been compensated well. However, the strength of this
+relationship is weaker than the previous two examples. Although Tesla is
+still a fairly recent addition to the S&P 500 (late-2020), it has
+quickly jumped into one of the top 10 spots in terms of market
+capitalization (and thus, weight in the index). However, it remains
+smaller than both Alphabet and Apple, so the weaker relationship is not
+surprising.
+
+``` r
+MSTRfit = lm(MSTR~SPY,data=XS)
+summary(MSTRfit)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = MSTR ~ SPY, data = XS)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -529.72 -189.52    6.43  163.04  645.92 
+    ## 
+    ## Coefficients:
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)  23.1505    35.8394   0.646    0.521    
+    ## SPY           2.5914     0.5687   4.557 2.73e-05 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 273.2 on 58 degrees of freedom
+    ## Multiple R-squared:  0.2636, Adjusted R-squared:  0.2509 
+    ## F-statistic: 20.76 on 1 and 58 DF,  p-value: 2.725e-05
+
+``` r
+ggplot(XS,aes(x=SPY,y=MSTR))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](README_files/figure-gfm/MSTRfit-1.png)<!-- -->
 
 Similarly, we can calculate the beta for our other assets and
 portfolios.
@@ -736,18 +756,18 @@ summary(BTCfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -510.15 -112.21  -10.27  132.46  364.91 
+    ## -515.70 -114.49  -14.25  127.21  359.69 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  11.0497    24.3391   0.454    0.652    
-    ## SPY           1.9290     0.3857   5.002 5.58e-06 ***
+    ## (Intercept)  16.6669    24.0777   0.692    0.492    
+    ## SPY           1.9180     0.3821   5.020 5.22e-06 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 185.2 on 58 degrees of freedom
-    ## Multiple R-squared:  0.3014, Adjusted R-squared:  0.2893 
-    ## F-statistic: 25.02 on 1 and 58 DF,  p-value: 5.583e-06
+    ## Residual standard error: 183.5 on 58 degrees of freedom
+    ## Multiple R-squared:  0.3029, Adjusted R-squared:  0.2909 
+    ## F-statistic:  25.2 on 1 and 58 DF,  p-value: 5.225e-06
 
 ``` r
 ggplot(XS,aes(y=BTC,x=SPY))+
@@ -770,18 +790,18 @@ summary(ETHfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -411.35 -114.84   -5.19  132.18  681.11 
+    ## -412.22 -114.95   -5.44  132.60  680.81 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  17.8471    28.5734   0.625    0.535    
-    ## SPY           2.7777     0.4528   6.135 8.15e-08 ***
+    ## (Intercept)  18.2215    28.4995   0.639    0.525    
+    ## SPY           2.7860     0.4522   6.161 7.39e-08 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 217.4 on 58 degrees of freedom
-    ## Multiple R-squared:  0.3936, Adjusted R-squared:  0.3831 
-    ## F-statistic: 37.64 on 1 and 58 DF,  p-value: 8.15e-08
+    ## Residual standard error: 217.2 on 58 degrees of freedom
+    ## Multiple R-squared:  0.3955, Adjusted R-squared:  0.3851 
+    ## F-statistic: 37.95 on 1 and 58 DF,  p-value: 7.395e-08
 
 ``` r
 ggplot(XS,aes(y=ETH,x=SPY))+
@@ -804,18 +824,18 @@ summary(ADAfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -505.85 -213.88  -60.74  121.43 1433.68 
+    ## -509.68 -192.30  -62.58  117.14 1430.33 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   5.0183    43.5657   0.115 0.908693    
-    ## SPY           2.8372     0.6903   4.110 0.000126 ***
+    ## (Intercept)   7.9627    43.3381   0.184 0.854863    
+    ## SPY           2.8508     0.6877   4.146 0.000112 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 331.4 on 58 degrees of freedom
-    ## Multiple R-squared:  0.2256, Adjusted R-squared:  0.2122 
-    ## F-statistic: 16.89 on 1 and 58 DF,  p-value: 0.000126
+    ## Residual standard error: 330.3 on 58 degrees of freedom
+    ## Multiple R-squared:  0.2286, Adjusted R-squared:  0.2153 
+    ## F-statistic: 17.19 on 1 and 58 DF,  p-value: 0.0001118
 
 ``` r
 ggplot(XS,aes(y=ADA,x=SPY))+
@@ -842,18 +862,18 @@ summary(PORT5050fit)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -255.075  -56.103   -5.136   66.231  182.454 
+    ## -257.851  -57.244   -7.124   63.605  179.843 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   5.5249    12.1695   0.454    0.652    
-    ## SPY           1.4645     0.1928   7.595 2.93e-10 ***
+    ## (Intercept)    8.334     12.039   0.692    0.492    
+    ## SPY            1.459      0.191   7.637 2.49e-10 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 92.58 on 58 degrees of freedom
-    ## Multiple R-squared:  0.4986, Adjusted R-squared:   0.49 
-    ## F-statistic: 57.68 on 1 and 58 DF,  p-value: 2.934e-10
+    ## Residual standard error: 91.76 on 58 degrees of freedom
+    ## Multiple R-squared:  0.5014, Adjusted R-squared:  0.4928 
+    ## F-statistic: 58.33 on 1 and 58 DF,  p-value: 2.487e-10
 
 ``` r
 ggplot(XS,aes(y=PORT5050,x=SPY))+
@@ -876,18 +896,18 @@ summary(PORT9505fit)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -25.5075  -5.6103  -0.5136   6.6231  18.2454 
+    ## -25.7851  -5.7244  -0.7124   6.3605  17.9843 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  0.55249    1.21695   0.454    0.652    
-    ## SPY          1.04645    0.01928  54.268   <2e-16 ***
+    ## (Intercept)   0.8334     1.2039   0.692    0.492    
+    ## SPY           1.0459     0.0191  54.751   <2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 9.258 on 58 degrees of freedom
-    ## Multiple R-squared:  0.9807, Adjusted R-squared:  0.9804 
-    ## F-statistic:  2945 on 1 and 58 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 9.176 on 58 degrees of freedom
+    ## Multiple R-squared:  0.981,  Adjusted R-squared:  0.9807 
+    ## F-statistic:  2998 on 1 and 58 DF,  p-value: < 2.2e-16
 
 ``` r
 ggplot(XS,aes(y=PORT9505,x=SPY))+
@@ -920,18 +940,18 @@ summary(ETHBTCfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -286.86 -110.39  -22.64   66.42  507.03 
+    ## -280.46 -110.06  -20.12   69.66  511.00 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  17.3983    22.7493   0.765    0.447    
-    ## BTC           0.9849     0.1032   9.543 1.71e-13 ***
+    ## (Intercept)  11.3889    22.6816   0.502    0.617    
+    ## BTC           0.9981     0.1034   9.657 1.11e-13 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 174.1 on 58 degrees of freedom
-    ## Multiple R-squared:  0.6109, Adjusted R-squared:  0.6042 
-    ## F-statistic: 91.07 on 1 and 58 DF,  p-value: 1.706e-13
+    ## Residual standard error: 173 on 58 degrees of freedom
+    ## Multiple R-squared:  0.6166, Adjusted R-squared:  0.6099 
+    ## F-statistic: 93.26 on 1 and 58 DF,  p-value: 1.113e-13
 
 ``` r
 ggplot(XS,aes(y=ETH,x=BTC))+
@@ -954,18 +974,18 @@ summary(ADABTCfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -452.16 -185.41  -53.46  138.85 1161.79 
+    ## -447.56 -184.87  -55.55  143.03 1166.35 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   4.2839    39.4946   0.108    0.914    
-    ## BTC           1.0141     0.1792   5.660 4.92e-07 ***
+    ## (Intercept)   1.4304    39.8132   0.036    0.971    
+    ## BTC           1.0093     0.1814   5.563 7.06e-07 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 302.3 on 58 degrees of freedom
-    ## Multiple R-squared:  0.3558, Adjusted R-squared:  0.3447 
-    ## F-statistic: 32.04 on 1 and 58 DF,  p-value: 4.919e-07
+    ## Residual standard error: 303.7 on 58 degrees of freedom
+    ## Multiple R-squared:  0.348,  Adjusted R-squared:  0.3367 
+    ## F-statistic: 30.95 on 1 and 58 DF,  p-value: 7.062e-07
 
 ``` r
 ggplot(XS,aes(y=ADA,x=BTC))+
@@ -990,18 +1010,18 @@ summary(ADAETHfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -405.51 -180.77  -43.74  126.59 1457.52 
+    ## -408.39 -175.58  -46.23  124.37 1455.06 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  -4.9817    38.1121  -0.131    0.896    
-    ## ETH           0.8596     0.1365   6.295 4.42e-08 ***
+    ## (Intercept)  -2.6442    37.9210  -0.070    0.945    
+    ## ETH           0.8610     0.1359   6.338 3.76e-08 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 290.3 on 58 degrees of freedom
-    ## Multiple R-squared:  0.4059, Adjusted R-squared:  0.3957 
-    ## F-statistic: 39.63 on 1 and 58 DF,  p-value: 4.42e-08
+    ## Residual standard error: 289.1 on 58 degrees of freedom
+    ## Multiple R-squared:  0.4092, Adjusted R-squared:  0.399 
+    ## F-statistic: 40.17 on 1 and 58 DF,  p-value: 3.757e-08
 
 ``` r
 ggplot(XS,aes(y=ADA,x=ETH))+
@@ -1013,13 +1033,76 @@ ggplot(XS,aes(y=ADA,x=ETH))+
 
 ![](README_files/figure-gfm/adaethfit-1.png)<!-- -->
 
+### Case Study: Microstrategy and Bitcoin
+
+Next, we will model Microstrategy’s excess returns as a function of
+Bitcoin’s excess returns. Since Microstrategy has been purchasing
+Bitcoin to hold on their balance sheet, we might expect an interesting,
+strong result.
+
+``` r
+MSTRBTCfit = lm(MSTR~BTC,data=XS)
+summary(MSTRBTCfit)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = MSTR ~ BTC, data = XS)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -438.79 -149.12  -24.74  133.76  447.76 
+    ## 
+    ## Coefficients:
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)  12.6460    29.1353   0.434    0.666    
+    ## BTC           1.0369     0.1328   7.810 1.27e-10 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 222.2 on 58 degrees of freedom
+    ## Multiple R-squared:  0.5126, Adjusted R-squared:  0.5042 
+    ## F-statistic:    61 on 1 and 58 DF,  p-value: 1.275e-10
+
+``` r
+ggplot(XS,aes(y=MSTR,x=BTC))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](README_files/figure-gfm/MSTRbtcfit1-1.png)<!-- -->
+
+``` r
+MSTRBTCfit2 = lm(MSTR~SPY+BTC,data=XS)
+summary(MSTRBTCfit2)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = MSTR ~ SPY + BTC, data = XS)
+    ## 
+    ## Residuals:
+    ##    Min     1Q Median     3Q    Max 
+    ## -432.2 -152.6  -34.6  124.8  415.7 
+    ## 
+    ## Coefficients:
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)   8.1442    28.9072   0.282    0.779    
+    ## SPY           0.8645     0.5471   1.580    0.120    
+    ## BTC           0.9004     0.1570   5.735 3.89e-07 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 219.4 on 57 degrees of freedom
+    ## Multiple R-squared:  0.5331, Adjusted R-squared:  0.5167 
+    ## F-statistic: 32.54 on 2 and 57 DF,  p-value: 3.75e-10
+
 ### Case Study: Tesla and Bitcoin
 
-Next, we will model Tesla’s excess returns as a function of Bitcoin’s
-excess returns. Since Tesla has been purchasing Bitcoin to hold on their
-balance sheet, we might expect an interesting, strong result. While we
-do find an interesting result, it is for the opposite reason. Both the
-BTC “beta” and the regression $R^2$ are quite small.
+Tesla is another company that has made a significant investment in
+Bitcoin.
 
 ``` r
 TSLABTCfit = lm(TSLA~BTC,data=XS)
@@ -1032,18 +1115,18 @@ summary(TSLABTCfit)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -560.48 -133.07    9.14  141.92  586.90 
+    ## -554.83 -136.44    5.77  147.20  592.42 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  33.3890    27.6821   1.206 0.232654    
-    ## BTC           0.4689     0.1256   3.734 0.000432 ***
+    ## (Intercept)  27.8137    27.6742   1.005 0.319052    
+    ## BTC           0.4705     0.1261   3.731 0.000435 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 211.9 on 58 degrees of freedom
-    ## Multiple R-squared:  0.1938, Adjusted R-squared:  0.1799 
-    ## F-statistic: 13.94 on 1 and 58 DF,  p-value: 0.0004324
+    ## Residual standard error: 211.1 on 58 degrees of freedom
+    ## Multiple R-squared:  0.1936, Adjusted R-squared:  0.1797 
+    ## F-statistic: 13.92 on 1 and 58 DF,  p-value: 0.0004353
 
 ``` r
 ggplot(XS,aes(y=TSLA,x=BTC))+
@@ -1053,103 +1136,29 @@ ggplot(XS,aes(y=TSLA,x=BTC))+
 
     ## `geom_smooth()` using formula = 'y ~ x'
 
-![](README_files/figure-gfm/tslabtcfit-1.png)<!-- -->
-
-From the Tesla 10-K Filing for the Year Ended 12/31/2020:
-
-“In January 2021, we updated our investment policy…including digital
-assets…Thereafter, we invested an aggregate \$1.50 billion in bitcoin
-under this policy and may acquire and hold digital assets from time to
-time or long-term.”
-
-*Note: During Q2 2022, Tesla sold roughly 80% of their bitcoin holdings.
-Their balance sheet reported \$1.26B at the end of Q1 2022 and \$0.22B
-at the end of Q2 2022.*
-
-So let’s split the time series into two parts: before this updated
-Bitcoin policy, and after. Then we compute/display the correlations of
-the excess returns and estimate a linear regression for each window.
+![](README_files/figure-gfm/TSLAbtcfit1-1.png)<!-- -->
 
 ``` r
-subXS1 = XS[index(XS)<"2021-01-01",]
-subXS2 = XS[index(XS)>="2021-01-01",]
-cor(subXS1$BTC,subXS1$TSLA)
-```
-
-    ##          TSLA
-    ## BTC 0.5853465
-
-``` r
-cor(subXS2$BTC,subXS2$TSLA)
-```
-
-    ##          TSLA
-    ## BTC 0.3394333
-
-``` r
-TSLABTCfit1 = lm(TSLA~BTC,data=subXS1)
-TSLABTCfit2 = lm(TSLA~BTC,data=subXS2)
-summary(TSLABTCfit1)
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = TSLA ~ BTC, data = subXS1)
-    ## 
-    ## Residuals:
-    ##     Min      1Q  Median      3Q     Max 
-    ## -452.58 -149.56   35.44  139.43  465.05 
-    ## 
-    ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)  
-    ## (Intercept) 149.4469    59.4758   2.513   0.0248 *
-    ## BTC           0.6341     0.2347   2.701   0.0172 *
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 225.7 on 14 degrees of freedom
-    ## Multiple R-squared:  0.3426, Adjusted R-squared:  0.2957 
-    ## F-statistic: 7.297 on 1 and 14 DF,  p-value: 0.01721
-
-``` r
+TSLABTCfit2 = lm(TSLA~SPY+BTC,data=XS)
 summary(TSLABTCfit2)
 ```
 
     ## 
     ## Call:
-    ## lm(formula = TSLA ~ BTC, data = subXS2)
+    ## lm(formula = TSLA ~ SPY + BTC, data = XS)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -523.23  -86.01    0.49  117.90  291.82 
+    ## -423.50 -114.37    7.93  137.52  480.35 
     ## 
     ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)  
-    ## (Intercept) -11.0233    28.1814  -0.391   0.6977  
-    ## BTC           0.3181     0.1360   2.339   0.0242 *
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)  18.9916    25.4239   0.747 0.458136    
+    ## SPY           1.6942     0.4812   3.521 0.000854 ***
+    ## BTC           0.2030     0.1381   1.470 0.147017    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 186.3 on 42 degrees of freedom
-    ## Multiple R-squared:  0.1152, Adjusted R-squared:  0.09415 
-    ## F-statistic: 5.469 on 1 and 42 DF,  p-value: 0.02419
-
-``` r
-ggplot(subXS1,aes(y=TSLA,x=BTC))+
-  geom_point()+
-  geom_smooth(method="lm")
-```
-
-    ## `geom_smooth()` using formula = 'y ~ x'
-
-![](README_files/figure-gfm/tslabtcfit2-1.png)<!-- -->
-
-``` r
-ggplot(subXS2,aes(y=TSLA,x=BTC))+
-  geom_point()+
-  geom_smooth(method="lm")
-```
-
-    ## `geom_smooth()` using formula = 'y ~ x'
-
-![](README_files/figure-gfm/tslabtcfit2-2.png)<!-- -->
+    ## Residual standard error: 193 on 57 degrees of freedom
+    ## Multiple R-squared:  0.3376, Adjusted R-squared:  0.3144 
+    ## F-statistic: 14.53 on 2 and 57 DF,  p-value: 7.968e-06

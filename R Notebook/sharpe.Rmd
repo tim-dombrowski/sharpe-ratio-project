@@ -91,9 +91,9 @@ The quantmod package contains tools for importing both stock and crypto data fro
 
 ```{r assetdata, results='hide'}
 tickers = c("SPY",
-            "GOOG",
-            "AAPL",
+            "NVDA",
             "TSLA",
+            "MSTR",
             "BTC-USD",
             "ETH-USD",
             "ADA-USD")
@@ -112,26 +112,26 @@ ETH = `ETH-USD`
 ADA = `ADA-USD`
 # Compute returns
 SPY$Return = c(NA, diff(log(as.numeric(SPY$SPY.Adjusted))))
-GOOG$Return = c(NA, diff(log(as.numeric(GOOG$GOOG.Adjusted))))
-AAPL$Return = c(NA, diff(log(as.numeric(AAPL$AAPL.Adjusted))))
+NVDA$Return = c(NA, diff(log(as.numeric(NVDA$NVDA.Adjusted))))
 TSLA$Return = c(NA, diff(log(as.numeric(TSLA$TSLA.Adjusted))))
+MSTR$Return = c(NA, diff(log(as.numeric(MSTR$MSTR.Adjusted))))
 BTC$Return = c(NA, diff(log(as.numeric(BTC$`BTC-USD.Adjusted`))))
 ETH$Return = c(NA, diff(log(as.numeric(ETH$`ETH-USD.Adjusted`))))
 ADA$Return = c(NA, diff(log(as.numeric(ADA$`ADA-USD.Adjusted`))))
 # Annualize returns
 SPY$SPY = SPY$Return*12*100
-GOOG$GOOG = GOOG$Return*12*100
-AAPL$AAPL = AAPL$Return*12*100
+NVDA$NVDA = NVDA$Return*12*100
 TSLA$TSLA = TSLA$Return*12*100
+MSTR$MSTR = MSTR$Return*12*100
 BTC$BTC = BTC$Return*12*100
 ETH$ETH = ETH$Return*12*100
 ADA$ADA = ADA$Return*12*100
 # Merge to ALL
 ALL = merge(ALL, 
             SPY$SPY,
-            GOOG$GOOG,
-            AAPL$AAPL,
+            NVDA$NVDA,
             TSLA$TSLA,
+            MSTR$MSTR,
             BTC$`BTC`,
             ETH$`ETH`,
             ADA$`ADA`)
@@ -181,18 +181,18 @@ ggplot(FINAL,aes(x=Index,y=SPY))+
   geom_col()+
   xlab("")+
   ggtitle("SPY Returns")
-ggplot(FINAL,aes(x=Index,y=GOOG))+
+ggplot(FINAL,aes(x=Index,y=NVDA))+
   geom_col()+
   xlab("")+
-  ggtitle("GOOG Returns")
-ggplot(FINAL,aes(x=Index,y=AAPL))+
-  geom_col()+
-  xlab("")+
-  ggtitle("AAPL Returns")
+  ggtitle("NVDA Returns")
 ggplot(FINAL,aes(x=Index,y=TSLA))+
   geom_col()+
   xlab("")+
   ggtitle("TSLA Returns")
+ggplot(FINAL,aes(x=Index,y=MSTR))+
+  geom_col()+
+  xlab("")+
+  ggtitle("MSTR Returns")
 ggplot(FINAL,aes(x=Index,y=BTC))+
   geom_col()+
   xlab("")+
@@ -255,9 +255,9 @@ Before we start calculating Sharpe ratios and betas, we first should adjust our 
 REAL = xts(order.by=index(FINAL))
 REAL$rf = (FINAL$rf-FINAL$inf)/(1+(FINAL$inf/100))
 REAL$SPY = (FINAL$SPY-FINAL$inf)/(1+(FINAL$inf/100))
-REAL$GOOG = (FINAL$GOOG-FINAL$inf)/(1+(FINAL$inf/100))
-REAL$AAPL = (FINAL$AAPL-FINAL$inf)/(1+(FINAL$inf/100))
+REAL$NVDA = (FINAL$NVDA-FINAL$inf)/(1+(FINAL$inf/100))
 REAL$TSLA = (FINAL$TSLA-FINAL$inf)/(1+(FINAL$inf/100))
+REAL$MSTR = (FINAL$MSTR-FINAL$inf)/(1+(FINAL$inf/100))
 REAL$BTC = (FINAL$BTC-FINAL$inf)/(1+(FINAL$inf/100))
 REAL$ETH = (FINAL$ETH-FINAL$inf)/(1+(FINAL$inf/100))
 REAL$ADA = (FINAL$ADA-FINAL$inf)/(1+(FINAL$inf/100))
@@ -283,9 +283,9 @@ The last step before we calculate the Sharpe ratios is converting the real asset
 ```{r excessrets}
 XS = xts(order.by=index(FINAL))
 XS$SPY = REAL$SPY-REAL$rf
-XS$GOOG = REAL$GOOG-REAL$rf
-XS$AAPL = REAL$AAPL-REAL$rf
+XS$NVDA = REAL$NVDA-REAL$rf
 XS$TSLA = REAL$TSLA-REAL$rf
+XS$MSTR = REAL$MSTR-REAL$rf
 XS$BTC = REAL$BTC-REAL$rf
 XS$ETH = REAL$ETH-REAL$rf
 XS$ADA = REAL$ADA-REAL$rf
@@ -322,36 +322,36 @@ $r_i - r_f = \alpha + \beta*(r_m - r_f) +\epsilon$
 
 In the above equation, $r_i$ is the real excess return for company $i$, $r_f$ is the real risk-free rate, and $r_m$ is the real market return. We then use our data to estimate $\alpha$ and $\beta$, and then our model errors are represented by $\epsilon$.
 
-To fit the CAPM relationship, we estimate a linear regression of the GOOG excess returns on the market (S&P500) excess returns. The summary function prints the regression estimates/results, and then ggplot lets us easily plot the relationship. For GOOG, we get a beta estimate reasonably close to 1, which suggests that Alphabet has roughly an equal level of systematic risk as the market as a whole (or at least as measured by the S&P 500). Thus, the interpretation is that if the market goes up or down by 1%, we would expect that GOOG would also increase or decrease by the same amount (percentage-wise).
+To fit the CAPM relationship, we estimate a linear regression of the NVDA excess returns on the market (S&P500) excess returns. The summary function prints the regression estimates/results, and then ggplot lets us easily plot the relationship. For NVDA, we get a beta estimate reasonably close to 1, which suggests that Alphabet has roughly an equal level of systematic risk as the market as a whole (or at least as measured by the S&P 500). Thus, the interpretation is that if the market goes up or down by 1%, we would expect that NVDA would also increase or decrease by the same amount (percentage-wise).
 
-Then let's make note of the strength of the fit with the $R^2>0.5$. Theoretically, this would indicate the percent of variation in GOOG that is explained by broader market movements, but since GOOG is a major component of the S&P 500, that might not be the best interpretation for this particular example. In other words, it shouldn't be surprising that the beta for GOOG is close to 1.
+Then let's make note of the strength of the fit with the $R^2>0.5$. Theoretically, this would indicate the percent of variation in NVDA that is explained by broader market movements, but since NVDA is a major component of the S&P 500, that might not be the best interpretation for this particular example. In other words, it shouldn't be surprising that the beta for NVDA is close to 1.
 
-The last bit of info that we will make note of from these results is the `(Intercept)` coefficient. In CAPM, this estimate of 'alpha' represents the average annual outperformance of the asset over the market. Thus, GOOG has outperformed the market on average over the past 5 years.
+The last bit of info that we will make note of from these results is the `(Intercept)` coefficient. In CAPM, this estimate of 'alpha' represents the average annual outperformance of the asset over the market. Thus, NVDA has outperformed the market on average over the past 5 years.
 
-```{r googfit}
-GOOGfit = lm(GOOG~SPY,data=XS)
-summary(GOOGfit)
-ggplot(XS,aes(x=SPY,y=GOOG))+
+```{r NVDAfit}
+NVDAfit = lm(NVDA~SPY,data=XS)
+summary(NVDAfit)
+ggplot(XS,aes(x=SPY,y=NVDA))+
   geom_point()+
   geom_smooth(method="lm")
 ```
 
-Now with Apple, we get a slightly larger beta, which suggests that a 1% increase in the market is expected to correspond with an amplified increase in the price of AAPL. Similarly, a 1% decline in the market would be expected to correlate with a larger decrease in the price of AAPL. Along with this larger systematic risk, the alpha estimate shows that AAPL has compensated for this higher risk with a higher average return over the market.
+Now with Apple, we get a slightly larger beta, which suggests that a 1% increase in the market is expected to correspond with an amplified increase in the price of TSLA. Similarly, a 1% decline in the market would be expected to correlate with a larger decrease in the price of TSLA. Along with this larger systematic risk, the alpha estimate shows that TSLA has compensated for this higher risk with a higher average return over the market.
 
-```{r aaplfit}
-AAPLfit = lm(AAPL~SPY,data=XS)
-summary(AAPLfit)
-ggplot(XS,aes(x=SPY,y=AAPL))+
+```{r TSLAfit}
+TSLAfit = lm(TSLA~SPY,data=XS)
+summary(TSLAfit)
+ggplot(XS,aes(x=SPY,y=TSLA))+
   geom_point()+
   geom_smooth(method="lm")
 ```
 
 With Tesla, we see there is a much larger beta estimate. This also corresponds with a larger alpha suggesting this increased systematic risk has been compensated well. However, the strength of this relationship is weaker than the previous two examples. Although Tesla is still a fairly recent addition to the S&P 500 (late-2020), it has quickly jumped into one of the top 10 spots in terms of market capitalization (and thus, weight in the index). However, it remains smaller than both Alphabet and Apple, so the weaker relationship is not surprising.
 
-```{r tslafit}
-TSLAfit = lm(TSLA~SPY,data=XS)
-summary(TSLAfit)
-ggplot(XS,aes(x=SPY,y=TSLA))+
+```{r MSTRfit}
+MSTRfit = lm(MSTR~SPY,data=XS)
+summary(MSTRfit)
+ggplot(XS,aes(x=SPY,y=MSTR))+
   geom_point()+
   geom_smooth(method="lm")
 ```
@@ -430,11 +430,30 @@ ggplot(XS,aes(y=ADA,x=ETH))+
   geom_smooth(method="lm")
 ```
 
+### Case Study: Microstrategy and Bitcoin
+
+Next, we will model Microstrategy's excess returns as a function of Bitcoin's excess returns. Since Microstrategy has been purchasing Bitcoin to hold on their balance sheet, we might expect an interesting, strong result. 
+
+```{r MSTRbtcfit1}
+MSTRBTCfit = lm(MSTR~BTC,data=XS)
+summary(MSTRBTCfit)
+ggplot(XS,aes(y=MSTR,x=BTC))+
+  geom_point()+
+  geom_smooth(method="lm")
+```
+
+
+
+```{r MSTRbtcfit2}
+MSTRBTCfit2 = lm(MSTR~SPY+BTC,data=XS)
+summary(MSTRBTCfit2)
+```
+
 ### Case Study: Tesla and Bitcoin
 
-Next, we will model Tesla's excess returns as a function of Bitcoin's excess returns. Since Tesla has been purchasing Bitcoin to hold on their balance sheet, we might expect an interesting, strong result. While we do find an interesting result, it is for the opposite reason. Both the BTC "beta"  and the regression $R^2$ are quite small.
+Tesla is another company that has made a significant investment in Bitcoin. 
 
-```{r tslabtcfit}
+```{r TSLAbtcfit1}
 TSLABTCfit = lm(TSLA~BTC,data=XS)
 summary(TSLABTCfit)
 ggplot(XS,aes(y=TSLA,x=BTC))+
@@ -442,29 +461,10 @@ ggplot(XS,aes(y=TSLA,x=BTC))+
   geom_smooth(method="lm")
 ```
 
-From the Tesla 10-K Filing for the Year Ended 12/31/2020:
-
-"In January 2021, we updated our investment policy...including digital assets...Thereafter, we invested an aggregate \$1.50 billion in bitcoin under this policy and may acquire and hold digital assets from time to time or long-term."
-
-*Note: During Q2 2022, Tesla sold roughly 80% of their bitcoin holdings. Their balance sheet reported \$1.26B at the end of Q1 2022 and \$0.22B at the end of Q2 2022.*
-
-So let's split the time series into two parts: before this updated Bitcoin policy, and after. Then we compute/display the correlations of the excess returns and estimate a linear regression for each window.
-
-```{r tslabtcfit2}
-subXS1 = XS[index(XS)<"2021-01-01",]
-subXS2 = XS[index(XS)>="2021-01-01",]
-cor(subXS1$BTC,subXS1$TSLA)
-cor(subXS2$BTC,subXS2$TSLA)
-TSLABTCfit1 = lm(TSLA~BTC,data=subXS1)
-TSLABTCfit2 = lm(TSLA~BTC,data=subXS2)
-summary(TSLABTCfit1)
+```{r TSLAbtcfit2}
+TSLABTCfit2 = lm(TSLA~SPY+BTC,data=XS)
 summary(TSLABTCfit2)
-ggplot(subXS1,aes(y=TSLA,x=BTC))+
-  geom_point()+
-  geom_smooth(method="lm")
-ggplot(subXS2,aes(y=TSLA,x=BTC))+
-  geom_point()+
-  geom_smooth(method="lm")
 ```
+
 
 
