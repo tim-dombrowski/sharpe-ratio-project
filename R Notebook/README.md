@@ -1,120 +1,193 @@
 Sharpe Ratio Comparisons
 ================
+Last updated: 2026-02-21
 
-## R Packages
+## Preliminary Work: Install/Load Packages
+
+To try and ensure that this R Notebook will run successfully, we’ll use
+the [renv
+package](https://cran.r-project.org/web/packages/renv/index.html) to
+create a project-specific library of packages. This will allow us to
+install the packages that we need for this project without affecting any
+other projects that we may be working on. Additionally, the project
+library will track the specific versions of the dependency packages so
+that any updates to those packages will not break this project.
+
+The code chunk below will first install the renv package if it is not
+already installed. Then we will load the package. Next, we’ll use the
+`restore()` function to install any packages listed in the renv.lock
+file. Once these packages are installed, we can load them into the R
+session using the `library()` commands. Below the code chunk, we’ll list
+out the packages that will be used in the project demo. And if you run
+into any trouble using renv, then you can use the second code chunk
+below and that should be an even more reliable approach to install the
+required packages.
+
+``` r
+# Install renv package if not already installed
+if(!"renv" %in% installed.packages()[,"Package"]) install.packages("renv")
+# Load renv package
+library(renv)
+# Use restore() to install any packages listed in the renv.lock file
+renv::restore(clean=TRUE, lockfile="../renv.lock")
+# Load in the packages
+library(fredr)
+library(quantmod)
+library(xts)
+library(tidyr)
+library(ggplot2)
+library(rmarkdown)
+```
 
 - The [fredr package](https://cran.r-project.org/package=fredr) is an R
   package that wraps the FRED API for easy importing of FRED data into
   R.
+
 - The [quantmod package](https://cran.r-project.org/package=quantmod)
   contains tools for importing and analyzing financial data.
+
 - The [xts package](https://cran.r-project.org/package=xts) allows for
   some additional time series functionality.
-- The [reshape2 package](https://cran.r-project.org/package=reshape2) is
-  used to prepare data frames for ggplot2 graphics.
+
+- The [tidyr package](https://cran.r-project.org/package=tidyr) is used
+  to prepare data frames for ggplot2 graphics.
+
 - The [ggplot2 package](https://cran.r-project.org/package=ggplot2)
   includes tools for generating graphics and visuals.
+
 - The [rmarkdown package](https://cran.r-project.org/package=rmarkdown)
   is used to generate this R Notebook.
 
-The first three lines in this setup chunk automatically install any R
-packages that you may be missing. One note regarding any code chunk
-labeled ‘setup’ is that the R Notebook will automatically run it prior
-to any other code chunk.
+Since the rmarkdown functionality is built into RStudio, this last one
+is automatically loaded when you open RStudio. So no need to use the
+`library()` function for it. Another observation to make about the code
+chunk above is that it is labeled as `setup`, which is a special name,
+which the R Notebook will recognize and automatically run prior to
+running any other code chunk. This is useful for loading in packages and
+setting up other global options that will be used throughout the
+notebook.
+
+Then if you wish to try and update the versions of the various R
+packages in the lock file, you can use the `renv::update()` function to
+update the packages in the project library. However, it is possible that
+these updates could break the code in this notebook. If so, you may need
+to adapt the code to work with the updated packages.
+
+My recommendation is to first run through the code using the versions of
+the packages in the lock file. Then if you want to try and update the
+packages, you can do so and then run through the code again to see if it
+still works. If not, you can always revert back to the lock file
+versions using the `renv::restore()` function.
+
+If you update the packages and get everything working successfully, then
+you can update the lock file using the `renv::snapshot()` function. This
+will update the lock file with the versions of the packages that are
+currently installed in the project library. Then you can commit the
+updated lock file to the repository so that others can use the updated
+versions of the packages.
+
+### Alternative Package Installation Code
+
+If you run into any trouble using renv in the code chunk above, then you
+can use the code chunk below to install the required packages for this
+analysis. This method will first check if you have already installed the
+packages. If any are missing, it will then install them. Then it will
+load the packages into the R session. A potential flaw in this approach
+compared to using renv is that it will simply install the latest
+versions of the packages, which could potentially break some of the code
+in this notebook if any of the updates aren’t backwards compatible.
+
+As long as you have downloaded the entire project repository, the renv
+chunk above will likely be managing the packages. Thus, the `eval=FALSE`
+option is used to prevent this chunk from running unless manually
+executed. If you only downloaded this one Rmd file, this code chunk
+below should take care of installing the packages for you.
 
 ``` r
 list.of.packages = c("fredr",
-                     "quantmod", 
-                     "xts", 
-                     "reshape2", 
-                     "ggplot2", 
+                     "quantmod",
+                     "xts",
+                     "tidyr",
+                     "ggplot2",
                      "rmarkdown")
 new.packages = list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 library(fredr)
-```
-
-    ## Warning: package 'fredr' was built under R version 4.4.2
-
-``` r
 library(quantmod)
-```
-
-    ## Warning: package 'quantmod' was built under R version 4.4.2
-
-    ## Loading required package: xts
-
-    ## Warning: package 'xts' was built under R version 4.4.2
-
-    ## Loading required package: zoo
-
-    ## Warning: package 'zoo' was built under R version 4.4.2
-
-    ## 
-    ## Attaching package: 'zoo'
-
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     as.Date, as.Date.numeric
-
-    ## Loading required package: TTR
-
-    ## Warning: package 'TTR' was built under R version 4.4.2
-
-    ## Registered S3 method overwritten by 'quantmod':
-    ##   method            from
-    ##   as.zoo.data.frame zoo
-
-``` r
 library(xts)
-library(reshape2)
-```
-
-    ## Warning: package 'reshape2' was built under R version 4.4.2
-
-``` r
+library(tidyr)
 library(ggplot2)
+library(rmarkdown)
 ```
 
-    ## Warning: package 'ggplot2' was built under R version 4.4.2
-
-Set the width of the output boxes to be a bit wider than usual. \*This
-will help when outputting matrices.\*
+Set the width of the output boxes to be a bit wider than usual. *This
+will help when outputting matrices and other wide outputs.*
 
 ``` r
 options(width=120)
+```
+
+## Set Parameters
+
+This chunk controls the key parameters for the analysis. Edit these
+values to change the FRED data series, assets to compare, and sample
+length.
+
+``` r
+# FRED Series IDs
+RF_series = "DGS10"
+CPI_series = "CPIAUCSL"
+
+# Yahoo Finance tickers to download and compare (note:cryptos have '-USD' suffixes to distinguish from any stocks with the same ticker)
+tickers = c("SPY", "NVDA", "TSLA", "MSTR", "BTC-USD", "ETH-USD", "ADA-USD")
+
+# Number of most recent months to include in final dataset
+n_months = 60
+
+# Market and crypto index specifications (for CAPM analysis)
+market_index = "SPY"     # The market factor for traditional CAPM
+crypto_index = "BTC"     # The crypto market factor for crypto-specific analysis
+
+# Portfolio definitions:
+# Each element is a named numeric vector of weights.
+# Names must match the *final* return series names from compute_returns
+# (e.g., "BTC-USD" → "BTC" after cleaning).
+portfolios = list(
+  PORT_5050 = c(SPY=0.50, BTC=0.50),
+  PORT_9505 = c(SPY=0.95, BTC=0.05)
+  # Add more, e.g.:
+  # PORT_SPY_NVDA_TSLA = c(SPY = 0.5, NVDA = 0.3, TSLA = 0.2)
+)
 ```
 
 ## FRED Data Import
 
 To access the FRED API, you must first create an account and [request an
 API key](https://fred.stlouisfed.org/docs/api/api_key.html). If you wish
-to run the code and replicate the results, you’ll need to make an
-account, generate your own API key, and run this command un-commented
-with your key in place of the placeholder text.
+to run the code and replicate the results, you need to make an account,
+generate an API key, save it in a plain text file named “fredapikey”,
+and run this command. The `scan` function will load the text, and the
+`fredr_set_key` function will set the key for the `fredr` package.
 
 ``` r
-#fredr_set_key("<YOUR-FRED-API-KEY>")
+fredr_set_key(scan("fredapikey", what="character"))
 ```
 
-Using the `fredr()` function, we will import the 10-year Treasury note
-yields. This is a typical proxy for the risk-free return when applying
-CAPM and calculating stock betas. The Sys.Date function is simply using
-the computer’s current time to get the most up-to-date data. *We could
-also import BTC prices via FRED, but they only use data from one
-exchange, whereas CoinMarketCap averages across many.*
+Using the `fredr()` function, we will import the risk-free rate and CPI
+data. The `Sys.Date()` function uses the computer’s current time to get
+the most up-to-date data available. We pull all available monthly data,
+then filter to the desired sample period later.
 
 ``` r
+# Risk-free asset
 RFraw = fredr(
-  series_id = "DGS10",
-  observation_start = as.Date("2011-04-30"),
-  observation_end = as.Date(Sys.Date()),
+  series_id = RF_series,
   frequency = "m"
 )
+
+# CPI data (used to calculate inflation rates)
 INFraw = fredr(
-  series_id = "CPIAUCSL",
-  observation_start = as.Date("2011-04-30"),
-  observation_end = as.Date(Sys.Date()),
+  series_id = CPI_series,
   frequency = "m"
 )
 ```
@@ -123,13 +196,18 @@ We will then create a `xts` time series object, `ALL`, to collect all
 the asset returns. This effectively imposes the directed nature of time
 into the data frame’s properties and opens the door to additional
 functions from the xts package. The second line of code renames the
-Treasury yields as `rf`, and the last line removes the extra variables
+Treasury yields as `RF`, and the last line removes the extra variables
 that are no longer needed.
 
 ``` r
-ALL = xts(RFraw,order.by=RFraw$date)
-colnames(ALL)[colnames(ALL)=="value"] <- "rf"
-ALL = subset(ALL,select=-c(date,series_id,realtime_start,realtime_end))
+# Initialize ALL with the risk-free rate data
+ALL = xts(RFraw, order.by=RFraw$date)
+
+# Rename the 'value' column to 'RF' for clarity
+colnames(ALL)[colnames(ALL)=="value"] = "RF"
+
+# Remove unnecessary columns
+ALL = subset(ALL, select=-c(date, series_id, realtime_start, realtime_end))
 ```
 
 Before we attach the inflation rate to the `ALL` table, we must first
@@ -145,221 +223,188 @@ numbers to annualized percentages by multiplying by 12 and 100. *There
 are some more details on this below in the stock return examples.*
 
 ``` r
-INF = xts(INFraw,order.by=INFraw$date)
-colnames(INF)[colnames(INF)=="value"] <- "CPI"
-INF = subset(INF,select=-c(date,series_id,realtime_start,realtime_end))
+# Convert CPI data to xts and clean up
+INF = xts(INFraw, order.by=INFraw$date)
+colnames(INF)[colnames(INF)=="value"] = "CPI"
+INF = subset(INF, select=-c(date, series_id, realtime_start, realtime_end))
+
+# Interpolate missing value for Oct 2025 due to govt shutdown
+INF$CPI = na.approx(INF$CPI, na.rm=FALSE)
+
+# Calculate monthly inflation rates and annualize
 INF$INFmonthly = log(as.numeric(INF$CPI)) - log(as.numeric(lag(INF$CPI)))
-INF$inf = INF$INFmonthly*12*100
+INF$INF = INF$INFmonthly*12*100
+
 # Attach the annualized inflation numbers to the ALL data frame
-ALL = merge(ALL,INF$inf)
+ALL = merge(ALL, INF$INF)
 ```
 
 ## Yahoo Finance Data Import
 
 The quantmod package contains tools for importing both stock and crypto
 data from Yahoo! Finance. The `getSymbols()` function is used to import
-the data. The first argument is a vector of ticker symbols, and the
-`src` argument specifies the data source. The `from` and `to` arguments
-specify the date range for the data. Then the `periodicity="monthly"`
-requests a monthly series, rather than the default daily frequency.
+the data. The first argument is a vector of ticker symbols from the
+parameters chunk, and the `src` argument specifies the data source. The
+`periodicity="monthly"` requests a monthly series, rather than the
+default daily frequency. We pull all available data and will filter to
+the desired sample period later.
 
 ``` r
-tickers = c("SPY",
-            "NVDA",
-            "TSLA",
-            "MSTR",
-            "BTC-USD",
-            "ETH-USD",
-            "ADA-USD")
 getSymbols(tickers,
            src="yahoo",
-           from="2011-04-01",
-           to=Sys.Date(),
            periodicity="monthly")
 ```
 
-Rename the crypto data frames since the \$ indexing doesn’t work with
-the hyphen in the name. Then covert the asset price series to annualized
-returns and merge these return series to the `ALL` data frame.
+    ## [1] "SPY"     "NVDA"    "TSLA"    "MSTR"    "BTC-USD" "ETH-USD" "ADA-USD"
+
+Now let’s compute annualized returns for all assets using a more
+efficient approach. We’ll use `lapply()` to iterate through each ticker
+and calculate returns, then merge them all into the `ALL` data frame.
+The `compute_returns()` function takes a ticker symbol, retrieves the
+corresponding data frame created by `getSymbols()`, calculates log
+returns, annualizes them, and then cleans up the column names. The
+resulting return series is returned as an xts object. After defining
+this function, we apply it to all tickers and merge the results into the
+`ALL` data frame.
 
 ``` r
-BTC = `BTC-USD`
-ETH = `ETH-USD`
-ADA = `ADA-USD`
-# Compute returns
-SPY$Return = c(NA, diff(log(as.numeric(SPY$SPY.Adjusted))))
-NVDA$Return = c(NA, diff(log(as.numeric(NVDA$NVDA.Adjusted))))
-TSLA$Return = c(NA, diff(log(as.numeric(TSLA$TSLA.Adjusted))))
-MSTR$Return = c(NA, diff(log(as.numeric(MSTR$MSTR.Adjusted))))
-BTC$Return = c(NA, diff(log(as.numeric(BTC$`BTC-USD.Adjusted`))))
-ETH$Return = c(NA, diff(log(as.numeric(ETH$`ETH-USD.Adjusted`))))
-ADA$Return = c(NA, diff(log(as.numeric(ADA$`ADA-USD.Adjusted`))))
-# Annualize returns
-SPY$SPY = SPY$Return*12*100
-NVDA$NVDA = NVDA$Return*12*100
-TSLA$TSLA = TSLA$Return*12*100
-MSTR$MSTR = MSTR$Return*12*100
-BTC$BTC = BTC$Return*12*100
-ETH$ETH = ETH$Return*12*100
-ADA$ADA = ADA$Return*12*100
-# Merge to ALL
-ALL = merge(ALL, 
-            SPY$SPY,
-            NVDA$NVDA,
-            TSLA$TSLA,
-            MSTR$MSTR,
-            BTC$`BTC`,
-            ETH$`ETH`,
-            ADA$`ADA`)
+# Function to compute annualized returns for a given ticker
+compute_returns = function(ticker) {
+  # getSymbols creates an object with the same name as the ticker
+  data_obj = get(ticker)
+  adj_col = paste0(ticker, ".Adjusted")
+  
+  # Compute log returns
+  returns = c(NA, diff(log(as.numeric(data_obj[, adj_col]))))
+  
+  # Annualize returns (monthly → annual, in percent)
+  annualized = returns * 12 * 100
+  
+  # Clean, simplified column name:
+  # - remove suffix like '-USD'
+  # - strip any remaining non-alphanumeric characters
+  base_name = sub("-USD$", "", ticker)  # BTC-USD → BTC
+  base_name = gsub("[^A-Za-z0-9]", "", base_name)
+  
+  result = xts(annualized, order.by = index(data_obj))
+  colnames(result) = base_name
+  return(result)
+}
+
+# Apply to all tickers and merge into ALL
+returns_list = lapply(tickers, compute_returns)
+ALL = do.call(merge, c(list(ALL), returns_list))
 ```
 
 ## Prepare Final Data
 
 Now that we have all the annualized monthly returns for all the assets,
-we will subset down to the 60 most recent full month observations. The
-first line takes the `tail()` of the `ALL` data frame and counts how
-many of the most recent observations are incomplete using
-`complete.cases()`. Then the second line creates our `FINAL` data frame
-where we trim off those extra, incomplete observations. Then the final
-line trims off anything earlier than the most recent 60 months. Thus, we
-end with a data frame with the 60 most recent monthly observations where
-we have all data present (except for ADA, which doesn’t yet have a full
-60 months of historical return data). This is the typical kind of data
-for CAPM calculations; however, there are certainly many extensions and
-expansions in the vast asset pricing literature.
+let’s subset down to the `n_months` most recent full month observations
+(as specified in the parameters chunk). The first line takes the
+`tail()` of the `ALL` data frame and counts how many of the most recent
+observations are incomplete using `complete.cases()`. Then the second
+line creates our `FINAL` data frame where we trim off those extra,
+incomplete observations. Then the final line trims off anything earlier
+than the most recent `n_months` months.
 
 ``` r
 ntrim = sum(!complete.cases(tail(ALL)))
 FINAL = ALL[1:(nrow(ALL)-ntrim),]
-FINAL = last(FINAL,60)
+FINAL = last(FINAL, n_months)
 ```
 
-Then before we dive into analyzing our final dataset, let’s create a
-couple portfolios between the S&P 500 and Bitcoin. For Portfolio 1,
-we’ll do an equal-weight portfolio between the S&P 500 and Bitcoin. Then
-Portfolio 2 will be 95% S&P 500 and 5% Bitcoin.
+Now let’s calculate the returns for any portfolios that we defined in
+the parameters chunk. The code below will loop through each portfolio,
+check that all required assets are present in the `FINAL` data frame,
+and then compute the weighted return for the portfolio. The resulting
+portfolio returns will be added as new columns to the `FINAL` data
+frame, and the portfolio names will be added to the list of asset
+columns for later use in plotting and statistics.
 
 ``` r
-w = c(0.5,0.5)
-FINAL$PORT5050 = w[1]*FINAL$SPY+w[2]*FINAL$BTC
-w = c(0.95,0.05)
-FINAL$PORT9505 = w[1]*FINAL$SPY+w[2]*FINAL$BTC
+# Existing asset columns (excluding RF and INF)
+asset_cols = setdiff(colnames(FINAL), c("RF", "INF"))
+
+# Create portfolios from the 'portfolios' list
+if (exists("portfolios") && length(portfolios) > 0) {
+  for (pname in names(portfolios)) {
+    w = portfolios[[pname]]
+    
+    # Check that all required assets are present
+    missing_assets = setdiff(names(w), asset_cols)
+    if (length(missing_assets) > 0) {
+      warning(
+        sprintf(
+          "Skipping portfolio '%s': missing assets in FINAL: %s",
+          pname,
+          paste(missing_assets, collapse = ", ")
+        )
+      )
+      next
+    }
+    
+    # Build portfolio as a weighted sum of existing xts columns
+    # Start with a zero xts aligned to FINAL
+    port_xts = xts(rep(0, nrow(FINAL)), order.by = index(FINAL))
+    for (a in names(w)) {
+      port_xts = port_xts + w[a] * FINAL[, a]
+    }
+    
+    colnames(port_xts) = pname
+    # Attach portfolio column to FINAL without breaking xts structure
+    FINAL = merge(FINAL, port_xts)
+    # Track portfolio in asset_cols so it appears in later plots/stats
+    asset_cols = c(asset_cols, pname)
+  }
+}
 ```
 
 ## Examine the Returns Series
 
 ### Visualize the Data
 
-We will use the ggplot2 package for graphics. To start, let’s plot out a
-bar chart for the least volatile return series, the risk-free rate
-(10-year Treasury yield). For this plot, we load in our final data
-frame, set the x input as `Index` (which is the index for our xts
-object, *time*). Then we plot the risk-free return on the y-axis. The
-`geom_col()` line indicates the type of plot, and the title is set with
-`ggtitle()`. The `xlab()` function is used to remove the x-axis label
-since it is not needed here.
+We will use the ggplot2 package for graphics. To create comparative
+plots efficiently, we’ll reshape the data into long format using `tidyr`
+and use `facet_wrap()` to generate all plots at once.
+
+First, let’s plot the risk-free rate and inflation separately since
+they’re on a different scale:
 
 ``` r
-ggplot(FINAL,aes(x=Index,y=rf))+
-  geom_col()+
-  xlab("")+
-  ggtitle("Risk-Free Asset Returns (10-Year Treasury Yield)")
+# Convert FINAL xts to a tidy data frame for plotting
+plot_data = data.frame(
+  Date = index(FINAL),
+  coredata(FINAL)
+)
+
+# Reshape to long panel format
+plot_long = tidyr::pivot_longer(
+  plot_data,
+  cols = -Date,
+  names_to = "Series",
+  values_to = "Value"
+)
+
+# Preserve original column order from FINAL
+series_order = colnames(FINAL)
+plot_long$Series = factor(plot_long$Series, levels = series_order)
+
+# Faceted bar chart for all series in FINAL
+ggplot(plot_long, aes(x=Date, y=Value)) +
+  geom_col(fill="black") +
+  facet_wrap(~ Series, scales="free_y", ncol=3) +
+  scale_x_date(
+    date_breaks="1 year",  # tick every year
+    date_labels="%Y"       # show year only
+  ) +
+  xlab("") +
+  ylab("Annualized Growth Rate/Return (%)") +
+  ggtitle("Time Series Bar Charts for Each Final Data Series") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle=45, hjust=1))
 ```
 
-![](README_files/figure-gfm/rfplot-1.png)<!-- -->
-
-Then we’ll generate the same chart for the inflation rates and asset
-returns.
-
-``` r
-ggplot(FINAL,aes(x=Index,y=inf))+
-  geom_col()+
-  xlab("")+
-  ggtitle("Annualized Inflation Rates")
-```
-
-![](README_files/figure-gfm/otherplots-1.png)<!-- -->
-
-``` r
-ggplot(FINAL,aes(x=Index,y=SPY))+
-  geom_col()+
-  xlab("")+
-  ggtitle("SPY Returns")
-```
-
-![](README_files/figure-gfm/otherplots-2.png)<!-- -->
-
-``` r
-ggplot(FINAL,aes(x=Index,y=NVDA))+
-  geom_col()+
-  xlab("")+
-  ggtitle("NVDA Returns")
-```
-
-![](README_files/figure-gfm/otherplots-3.png)<!-- -->
-
-``` r
-ggplot(FINAL,aes(x=Index,y=TSLA))+
-  geom_col()+
-  xlab("")+
-  ggtitle("TSLA Returns")
-```
-
-![](README_files/figure-gfm/otherplots-4.png)<!-- -->
-
-``` r
-ggplot(FINAL,aes(x=Index,y=MSTR))+
-  geom_col()+
-  xlab("")+
-  ggtitle("MSTR Returns")
-```
-
-![](README_files/figure-gfm/otherplots-5.png)<!-- -->
-
-``` r
-ggplot(FINAL,aes(x=Index,y=BTC))+
-  geom_col()+
-  xlab("")+
-  ggtitle("BTC Returns")
-```
-
-![](README_files/figure-gfm/otherplots-6.png)<!-- -->
-
-``` r
-ggplot(FINAL,aes(x=Index,y=ETH))+
-  geom_col()+
-  xlab("")+
-  ggtitle("ETH Returns")
-```
-
-![](README_files/figure-gfm/otherplots-7.png)<!-- -->
-
-``` r
-ggplot(FINAL,aes(x=Index,y=ADA))+
-  geom_col()+
-  xlab("")+
-  ggtitle("ADA Returns")
-```
-
-![](README_files/figure-gfm/otherplots-8.png)<!-- -->
-
-``` r
-ggplot(FINAL,aes(x=Index,y=PORT5050))+
-  geom_col()+
-  xlab("")+
-  ggtitle("Portfolio 1 Returns (50% S&P 500, 50% BTC)")
-```
-
-![](README_files/figure-gfm/otherplots-9.png)<!-- -->
-
-``` r
-ggplot(FINAL,aes(x=Index,y=PORT9505))+
-  geom_col()+
-  xlab("")+
-  ggtitle("Portfolio 2 Returns (95% S&P 500, 5% BTC)")
-```
-
-![](README_files/figure-gfm/otherplots-10.png)<!-- -->
+![](README_files/figure-gfm/assetplots-1.png)<!-- -->
 
 ### The Multivariate Return Distribution
 
@@ -371,17 +416,17 @@ as the variance of each asset’s returns along the diagonal, and the
 covariances between each pair of assets in the off-diagonal elements.
 
 The `colMeans()` function calculates the average of each column
-(i.e. the average return for each asset).*Note: the `round()` function
+(i.e. the average return for each asset). *Note: the `round()` function
 is applied to reduce the number of decimals when displaying the
 calculations in the output.*
 
 ``` r
-Er = colMeans(FINAL,na.rm=TRUE)
+Er = colMeans(FINAL, na.rm=TRUE)
 Er |> round(digits=2)
 ```
 
-    ##       rf      inf      SPY     NVDA     TSLA     MSTR      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     2.61     4.09    14.11    65.58    49.53    55.39    40.65    52.31    42.11    27.38    15.44
+    ##        RF       INF       SPY      NVDA      TSLA      MSTR       BTC       ETH       ADA PORT_5050 PORT_9505 
+    ##      3.42      4.35     13.89     53.83      9.74     17.72     17.29     12.41     -3.23     15.59     14.06
 
 Now let’s calculate the volatility (standard deviation of returns) for
 each of these assets. This is done by simply calculating the standard
@@ -389,776 +434,1060 @@ deviation `sd()` of each return series (reduced to just one line of code
 using the `apply()` function).
 
 ``` r
-sigma = apply(FINAL,2,sd,na.rm=TRUE)
+sigma = apply(FINAL, 2, sd, na.rm=TRUE)
 sigma |> round(digits=2)
 ```
 
-    ##       rf      inf      SPY     NVDA     TSLA     MSTR      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     1.37     3.97    63.57   167.49   238.90   330.10   228.34   287.19   385.12   134.10    67.27
+    ##        RF       INF       SPY      NVDA      TSLA      MSTR       BTC       ETH       ADA PORT_5050 PORT_9505 
+    ##      1.12      3.33     53.05    171.28    201.93    331.63    205.41    258.41    385.41    118.33     56.29
 
 Then beyond the individual asset volatilities, another critical
-component of portfolio-level risk is the correlations across the
-individual assets. The starting point for this is the covariance matrix,
-which we can compute using the `cov()` function. *Note: the
-`use="pairwise.complete.obs"` parameter prevents missing values in the
-event that any of the assets have less than 60 months of data available.
-This is no longer necessary; however, that was not the case back when I
-started this.*
+component of portfolio-level risk is relationship/co-movement between
+the assets. This is captured by the correlation matrix, which shows the
+pairwise correlations between all assets. The correlation matrix is
+derived from the covariance matrix, which captures the raw co-movement
+in terms of units of return. The correlation matrix normalizes this by
+the individual volatilities to give a standardized measure of how
+closely the returns move together, regardless of their individual
+scales. This is important for understanding diversification benefits and
+how assets interact within a portfolio.
 
 ``` r
-cov(FINAL, use="pairwise.complete.obs") |> round(digits=0)
+cov(FINAL) |> round(digits=0)
 ```
 
-    ##            rf  inf   SPY  NVDA  TSLA   MSTR   BTC   ETH    ADA PORT5050 PORT9505
-    ## rf          2    0    -3     9   -92     20   -26   -80   -123      -14       -4
-    ## inf         0   16   -19   -44   -64   -179  -186  -195   -224     -102      -27
-    ## SPY        -3  -19  4041  6641  8212  10964  7873 11292  11301     5957     4233
-    ## NVDA        9  -44  6641 28054 17104  26241 11968 21184  16580     9305     6908
-    ## TSLA      -92  -64  8212 17104 57075  32695 23666 37134  29632    15939     8985
-    ## MSTR       20 -179 10964 26241 32695 108966 54516 62616  63942    32740    13142
-    ## BTC       -26 -186  7873 11968 23666  54516 52141 51412  50698    30007    10086
-    ## ETH       -80 -195 11292 21184 37134  62616 51412 82479  69459    31352    13298
-    ## ADA      -123 -224 11301 16580 29632  63942 50698 69459 148317    30999    13271
-    ## PORT5050  -14 -102  5957  9305 15939  32740 30007 31352  30999    17982     7160
-    ## PORT9505   -4  -27  4233  6908  8985  13142 10086 13298  13271     7160     4525
+    ##            RF  INF  SPY  NVDA  TSLA   MSTR   BTC   ETH    ADA PORT_5050 PORT_9505
+    ## RF          1   -2    2     9    -2     42    14   -19    -47         8         3
+    ## INF        -2   11  -17   -10    27   -117  -126  -113    -94       -72       -22
+    ## SPY         2  -17 2815  6476  4816   9239  5499  8605   7771      4157      2949
+    ## NVDA        9  -10 6476 29338 14485  28180 13990 23346  15871     10233      6852
+    ## TSLA       -2   27 4816 14485 40774  27517 16673 24548  20635     10745      5409
+    ## MSTR       42 -117 9239 28180 27517 109979 53188 55047  68396     31213     11436
+    ## BTC        14 -126 5499 13990 16673  53188 42194 40789  45207     23847      7334
+    ## ETH       -19 -113 8605 23346 24548  55047 40789 66775  56048     24697     10214
+    ## ADA       -47  -94 7771 15871 20635  68396 45207 56048 148539     26489      9643
+    ## PORT_5050   8  -72 4157 10233 10745  31213 23847 24697  26489     14002      5142
+    ## PORT_9505   3  -22 2949  6852  5409  11436  7334 10214   9643      5142      3168
 
 The covariance matrix above captures not just the degree of variation in
-each asset return series, but also the degree to which each pair
-co-moves with each other. This is often normalized by individual asset
-volatilities to give a correlation matrix:
+each asset return series (the diagonal elements are the individual asset
+variances), but also the degree to which each pair co-moves with each
+other. This is often normalized by individual asset volatilities to give
+a correlation matrix:
 
 ``` r
-Rho = cor(FINAL,use="pairwise.complete.obs")
+Rho = cor(FINAL)
 Rho |> round(digits=2)
 ```
 
-    ##             rf   inf   SPY  NVDA  TSLA  MSTR   BTC   ETH   ADA PORT5050 PORT9505
-    ## rf        1.00 -0.07 -0.03  0.04 -0.28  0.04 -0.08 -0.20 -0.23    -0.08    -0.04
-    ## inf      -0.07  1.00 -0.07 -0.07 -0.07 -0.14 -0.21 -0.17 -0.15    -0.19    -0.10
-    ## SPY      -0.03 -0.07  1.00  0.62  0.54  0.52  0.54  0.62  0.46     0.70     0.99
-    ## NVDA      0.04 -0.07  0.62  1.00  0.43  0.47  0.31  0.44  0.26     0.41     0.61
-    ## TSLA     -0.28 -0.07  0.54  0.43  1.00  0.41  0.43  0.54  0.32     0.50     0.56
-    ## MSTR      0.04 -0.14  0.52  0.47  0.41  1.00  0.72  0.66  0.50     0.74     0.59
-    ## BTC      -0.08 -0.21  0.54  0.31  0.43  0.72  1.00  0.78  0.58     0.98     0.66
-    ## ETH      -0.20 -0.17  0.62  0.44  0.54  0.66  0.78  1.00  0.63     0.81     0.69
-    ## ADA      -0.23 -0.15  0.46  0.26  0.32  0.50  0.58  0.63  1.00     0.60     0.51
-    ## PORT5050 -0.08 -0.19  0.70  0.41  0.50  0.74  0.98  0.81  0.60     1.00     0.79
-    ## PORT9505 -0.04 -0.10  0.99  0.61  0.56  0.59  0.66  0.69  0.51     0.79     1.00
+    ##              RF   INF   SPY  NVDA  TSLA  MSTR   BTC   ETH   ADA PORT_5050 PORT_9505
+    ## RF         1.00 -0.58  0.04  0.05 -0.01  0.11  0.06 -0.07 -0.11      0.06      0.04
+    ## INF       -0.58  1.00 -0.10 -0.02  0.04 -0.11 -0.18 -0.13 -0.07     -0.18     -0.12
+    ## SPY        0.04 -0.10  1.00  0.71  0.45  0.53  0.50  0.63  0.38      0.66      0.99
+    ## NVDA       0.05 -0.02  0.71  1.00  0.42  0.50  0.40  0.53  0.24      0.50      0.71
+    ## TSLA      -0.01  0.04  0.45  0.42  1.00  0.41  0.40  0.47  0.27      0.45      0.48
+    ## MSTR       0.11 -0.11  0.53  0.50  0.41  1.00  0.78  0.64  0.54      0.80      0.61
+    ## BTC        0.06 -0.18  0.50  0.40  0.40  0.78  1.00  0.77  0.57      0.98      0.63
+    ## ETH       -0.07 -0.13  0.63  0.53  0.47  0.64  0.77  1.00  0.56      0.81      0.70
+    ## ADA       -0.11 -0.07  0.38  0.24  0.27  0.54  0.57  0.56  1.00      0.58      0.44
+    ## PORT_5050  0.06 -0.18  0.66  0.50  0.45  0.80  0.98  0.81  0.58      1.00      0.77
+    ## PORT_9505  0.04 -0.12  0.99  0.71  0.48  0.61  0.63  0.70  0.44      0.77      1.00
+
+#### Correlation Heatmap
+
+To better visualize the correlation structure, let’s create a heatmap of
+the correlation matrix. We’ll define a helper function to make this
+reusable for different return series.
+
+``` r
+# Helper function to create correlation heatmap
+make_corr_heatmap = function(data, title_text) {
+  # Compute correlation matrix
+  Rho = cor(data, use="pairwise.complete.obs")
+  
+  # Get column order from the data
+  corr_order = colnames(data)
+  
+  # Convert correlation matrix to long format for ggplot
+  Rho_df = as.data.frame(Rho)
+  Rho_df$Var1 = rownames(Rho_df)
+  Rho_long = tidyr::pivot_longer(
+    Rho_df,
+    cols = -Var1,
+    names_to = "Var2",
+    values_to = "Correlation"
+  )
+  
+  # Preserve ordering on x, reverse on y so the 1's run top-left → bottom-right
+  Rho_long$Var1 = factor(Rho_long$Var1, levels = corr_order)
+  Rho_long$Var2 = factor(Rho_long$Var2, levels = rev(corr_order))
+  
+  # Create heatmap
+  ggplot(Rho_long, aes(x=Var1, y=Var2, fill=Correlation)) +
+    geom_tile(color="white") +
+    scale_fill_gradient2(
+      low = "blue",
+      mid = "white",
+      high = "red",
+      midpoint = 0,
+      limits = c(-1, 1)
+    ) +
+    geom_text(aes(label=round(Correlation, 2)), size=3) +
+    theme_minimal() +
+    theme(axis.text.x=element_text(angle=45, hjust=1)) +
+    labs(title=title_text, x="", y="") +
+    coord_fixed()
+}
+```
+
+Now we can easily create the heatmap for nominal returns:
+
+``` r
+make_corr_heatmap(FINAL, "Correlation Matrix Heatmap of Nominal Returns")
+```
+
+![](README_files/figure-gfm/corrheatmap-1.png)<!-- -->
 
 ### Real Returns
 
 Before we start calculating Sharpe ratios and betas, we first should
-adjust our asset returns for inflation to convert from ‘nominal’ returns
-to ‘real’ returns.
+adjust our asset returns for inflation to convert from **nominal
+returns** to **real returns** (inflation-adjusted returns). We’ll use an
+efficient approach with a for loop to avoid repetitive code.
 
 ``` r
-REAL = xts(order.by=index(FINAL))
-REAL$rf = (FINAL$rf-FINAL$inf)/(1+(FINAL$inf/100))
-REAL$SPY = (FINAL$SPY-FINAL$inf)/(1+(FINAL$inf/100))
-REAL$NVDA = (FINAL$NVDA-FINAL$inf)/(1+(FINAL$inf/100))
-REAL$TSLA = (FINAL$TSLA-FINAL$inf)/(1+(FINAL$inf/100))
-REAL$MSTR = (FINAL$MSTR-FINAL$inf)/(1+(FINAL$inf/100))
-REAL$BTC = (FINAL$BTC-FINAL$inf)/(1+(FINAL$inf/100))
-REAL$ETH = (FINAL$ETH-FINAL$inf)/(1+(FINAL$inf/100))
-REAL$ADA = (FINAL$ADA-FINAL$inf)/(1+(FINAL$inf/100))
-REAL$PORT5050 = (FINAL$PORT5050-FINAL$inf)/(1+(FINAL$inf/100))
-REAL$PORT9505 = (FINAL$PORT9505-FINAL$inf)/(1+(FINAL$inf/100))
+# List of asset columns to adjust (excluding INF which we don't need to adjust)
+asset_cols_real = setdiff(colnames(FINAL), "INF")
+
+# Create REAL data frame by applying the real return formula to each column
+REAL = FINAL[, asset_cols_real]
+for (col in asset_cols_real) {
+  REAL[, col] = as.numeric(FINAL[, col] - FINAL$INF) / (1 + as.numeric(FINAL$INF / 100))
+}
 ```
 
 If we examine the same summary statistics for the real returns, we can
-see that the risk-free rate is actually negative due to high inflation.
-Then the rest of the results are qualitatively similar to before with
-just minor changes to some numbers due to the inflation adjustment.
+see how inflation adjustment affects the various metrics. The rest of
+the results are qualitatively similar to the nominal returns with
+adjustments to the specific numbers due to the inflation correction.
 
 ``` r
-RealEr = colMeans(REAL,na.rm=TRUE)
+# Average annual real returns
+RealEr = colMeans(REAL, na.rm=TRUE)
 RealEr |> round(digits=2)
 ```
 
-    ##       rf      SPY     NVDA     TSLA     MSTR      BTC      ETH      ADA PORT5050 PORT9505 
-    ##    -1.28     9.97    59.71    44.53    51.01    36.96    48.27    38.74    23.46    11.32
+    ##        RF       SPY      NVDA      TSLA      MSTR       BTC       ETH       ADA PORT_5050 PORT_9505 
+    ##     -0.78      9.39     47.64      5.04     13.90     13.55      8.75     -6.42     11.47      9.60
 
 ``` r
-Realsigma = apply(REAL,2,sd,na.rm=TRUE)
+# Annualized volatility of real returns
+Realsigma = apply(REAL, 2, sd, na.rm=TRUE)
 Realsigma |> round(digits=2)
 ```
 
-    ##       rf      SPY     NVDA     TSLA     MSTR      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     4.08    62.93   160.55   233.07   316.16   218.60   277.41   373.13   129.51    66.50
+    ##        RF       SPY      NVDA      TSLA      MSTR       BTC       ETH       ADA PORT_5050 PORT_9505 
+    ##      3.77     51.11    164.08    194.31    317.57    193.69    245.10    370.85    111.89     54.07
 
 ``` r
-RealRho = cor(REAL,use="pairwise.complete.obs")
+# Correlation matrix of real returns
+RealRho = cor(REAL, use="pairwise.complete.obs")
 RealRho |> round(digits=2)
 ```
 
-    ##            rf  SPY NVDA TSLA MSTR  BTC  ETH  ADA PORT5050 PORT9505
-    ## rf       1.00 0.13 0.11 0.01 0.14 0.18 0.11 0.07     0.18     0.15
-    ## SPY      0.13 1.00 0.62 0.56 0.52 0.56 0.63 0.48     0.71     0.99
-    ## NVDA     0.11 0.62 1.00 0.43 0.47 0.31 0.43 0.26     0.41     0.61
-    ## TSLA     0.01 0.56 0.43 1.00 0.41 0.44 0.55 0.34     0.51     0.57
-    ## MSTR     0.14 0.52 0.47 0.41 1.00 0.72 0.66 0.51     0.73     0.58
-    ## BTC      0.18 0.56 0.31 0.44 0.72 1.00 0.79 0.59     0.98     0.67
-    ## ETH      0.11 0.63 0.43 0.55 0.66 0.79 1.00 0.64     0.82     0.70
-    ## ADA      0.07 0.48 0.26 0.34 0.51 0.59 0.64 1.00     0.62     0.53
-    ## PORT5050 0.18 0.71 0.41 0.51 0.73 0.98 0.82 0.62     1.00     0.80
-    ## PORT9505 0.15 0.99 0.61 0.57 0.58 0.67 0.70 0.53     0.80     1.00
+    ##              RF  SPY NVDA  TSLA MSTR  BTC  ETH  ADA PORT_5050 PORT_9505
+    ## RF         1.00 0.15 0.05 -0.01 0.12 0.17 0.09 0.02      0.18      0.16
+    ## SPY        0.15 1.00 0.71  0.45 0.52 0.50 0.62 0.38      0.66      0.99
+    ## NVDA       0.05 0.71 1.00  0.42 0.49 0.39 0.52 0.24      0.50      0.71
+    ## TSLA      -0.01 0.45 0.42  1.00 0.41 0.39 0.47 0.27      0.44      0.47
+    ## MSTR       0.12 0.52 0.49  0.41 1.00 0.78 0.64 0.54      0.80      0.61
+    ## BTC        0.17 0.50 0.39  0.39 0.78 1.00 0.76 0.58      0.98      0.63
+    ## ETH        0.09 0.62 0.52  0.47 0.64 0.76 1.00 0.57      0.80      0.70
+    ## ADA        0.02 0.38 0.24  0.27 0.54 0.58 0.57 1.00      0.59      0.44
+    ## PORT_5050  0.18 0.66 0.50  0.44 0.80 0.98 0.80 0.59      1.00      0.77
+    ## PORT_9505  0.16 0.99 0.71  0.47 0.61 0.63 0.70 0.44      0.77      1.00
+
+``` r
+# Correlation heatmap of real returns
+make_corr_heatmap(REAL, "Correlation Matrix Heatmap of Real Returns")
+```
+
+![](README_files/figure-gfm/realstats-1.png)<!-- -->
 
 ### Excess Returns
 
 The last step before we calculate the Sharpe ratios is converting the
-real asset returns into ‘excess returns’. This involves subtracting the
-risk-free returns from each asset’s return series. Since our average
-real risk-free return was negative, this actually increases the expected
-returns. One way to think about what this does is that the theoretical
-risk-free asset should have zero variance. Since our T-bill risk-free
-asset does not have a zero variance, this adjustment normalizes the
-scenario to where the ‘excess return adjustment’ (subtracting rf) would
-force the risk-free returns to have zero variance, and thus be more
-appropriate for modeling. Interestingly, even after the inflation and
-risk-free adjustments, Cardano’s ADA is still more highly correlated
-with Alphabet’s stock, than it is with its primary smart contract
-competitor, ETH.
+real asset returns into **excess returns** (also known as **risk
+premia**). This involves subtracting the risk-free returns from each
+asset’s return series.
+
+One way to think about what this does is that the theoretical risk-free
+asset should have zero variance. Since our T-bill risk-free asset does
+not have zero variance in practice, this adjustment normalizes the
+scenario so that the “excess return adjustment” (subtracting the
+risk-free rate) forces the risk-free returns to have zero variance, and
+thus be more appropriate for modeling. These **real excess returns**
+will be the foundation for our Sharpe ratio calculations and CAPM
+regressions.
 
 ``` r
-XS = xts(order.by=index(FINAL))
-XS$SPY = REAL$SPY-REAL$rf
-XS$NVDA = REAL$NVDA-REAL$rf
-XS$TSLA = REAL$TSLA-REAL$rf
-XS$MSTR = REAL$MSTR-REAL$rf
-XS$BTC = REAL$BTC-REAL$rf
-XS$ETH = REAL$ETH-REAL$rf
-XS$ADA = REAL$ADA-REAL$rf
-XS$PORT5050 = REAL$PORT5050-REAL$rf
-XS$PORT9505 = REAL$PORT9505-REAL$rf
+# List of asset columns (excluding RF)
+asset_cols_xs = setdiff(colnames(REAL), "RF")
+
+# Create XS data frame by subtracting risk-free rate from each asset
+XS = REAL[, asset_cols_xs]
+for(col in asset_cols_xs) {
+  XS[, col] = REAL[, col] - REAL$RF
+}
 ```
 
 ``` r
-xsEr = colMeans(XS,na.rm=TRUE)
+# Average annual excess returns
+xsEr = colMeans(XS, na.rm=TRUE)
 xsEr |> round(digits=2)
 ```
 
-    ##      SPY     NVDA     TSLA     MSTR      BTC      ETH      ADA PORT5050 PORT9505 
-    ##    11.25    60.98    45.81    52.29    38.24    49.55    40.02    24.74    12.60
+    ##       SPY      NVDA      TSLA      MSTR       BTC       ETH       ADA PORT_5050 PORT_9505 
+    ##     10.17     48.42      5.82     14.68     14.33      9.52     -5.65     12.25     10.38
 
 ``` r
-xssigma = apply(XS,2,sd,na.rm=TRUE)
+# Annualized volatility of excess returns
+xssigma = apply(XS, 2, sd, na.rm=TRUE)
 xssigma |> round(digits=2)
 ```
 
-    ##      SPY     NVDA     TSLA     MSTR      BTC      ETH      ADA PORT5050 PORT9505 
-    ##    62.53   160.14   233.06   315.61   217.92   277.01   372.87   128.84    66.03
+    ##       SPY      NVDA      TSLA      MSTR       BTC       ETH       ADA PORT_5050 PORT_9505 
+    ##     50.69    163.91    194.40    317.15    193.10    244.80    370.79    111.28     53.59
 
 ``` r
-xsRho = cor(XS,use="pairwise.complete.obs")
+# Correlation matrix of excess returns
+xsRho = cor(XS, use="pairwise.complete.obs")
 xsRho |> round(digits=2)
 ```
 
-    ##           SPY NVDA TSLA MSTR  BTC  ETH  ADA PORT5050 PORT9505
-    ## SPY      1.00 0.61 0.56 0.51 0.55 0.63 0.48     0.71     0.99
-    ## NVDA     0.61 1.00 0.43 0.46 0.30 0.43 0.26     0.41     0.60
-    ## TSLA     0.56 0.43 1.00 0.41 0.44 0.55 0.34     0.51     0.58
-    ## MSTR     0.51 0.46 0.41 1.00 0.72 0.65 0.50     0.73     0.58
-    ## BTC      0.55 0.30 0.44 0.72 1.00 0.79 0.59     0.98     0.66
-    ## ETH      0.63 0.43 0.55 0.65 0.79 1.00 0.64     0.82     0.70
-    ## ADA      0.48 0.26 0.34 0.50 0.59 0.64 1.00     0.61     0.53
-    ## PORT5050 0.71 0.41 0.51 0.73 0.98 0.82 0.61     1.00     0.80
-    ## PORT9505 0.99 0.60 0.58 0.58 0.66 0.70 0.53     0.80     1.00
+    ##            SPY NVDA TSLA MSTR  BTC  ETH  ADA PORT_5050 PORT_9505
+    ## SPY       1.00 0.71 0.45 0.52 0.49 0.62 0.38      0.66      0.99
+    ## NVDA      0.71 1.00 0.42 0.49 0.39 0.52 0.24      0.50      0.71
+    ## TSLA      0.45 0.42 1.00 0.41 0.39 0.47 0.27      0.44      0.48
+    ## MSTR      0.52 0.49 0.41 1.00 0.78 0.64 0.54      0.80      0.61
+    ## BTC       0.49 0.39 0.39 0.78 1.00 0.76 0.58      0.98      0.62
+    ## ETH       0.62 0.52 0.47 0.64 0.76 1.00 0.57      0.80      0.70
+    ## ADA       0.38 0.24 0.27 0.54 0.58 0.57 1.00      0.59      0.45
+    ## PORT_5050 0.66 0.50 0.44 0.80 0.98 0.80 0.59      1.00      0.77
+    ## PORT_9505 0.99 0.71 0.48 0.61 0.62 0.70 0.45      0.77      1.00
+
+``` r
+# Correlation heatmap of excess returns
+make_corr_heatmap(XS, "Correlation Matrix Heatmap of Excess Returns")
+```
+
+![](README_files/figure-gfm/excessstats-1.png)<!-- -->
 
 ## Sharpe Ratios
 
-The Sharpe ratio compares the ratio of the excess return of portfolio
-with its volatility. For simplicity, we will calculate this for
-portfolios invested 100% in each individual asset, followed by the two
-portfolios that we constructed.
+The **Sharpe ratio** compares the excess return of a portfolio with its
+volatility. For simplicity, we will calculate this for portfolios
+invested 100% in each individual asset, followed by the portfolios that
+we constructed.
 
-The formula: $Sharpe$ $Ratio = \dfrac{R_p-R_f}{\sigma_p}$ divides the
-excess return by the standard deviation of the excess returns.
+The formula: $Sharpe~Ratio = \dfrac{R_p-R_f}{\sigma_p}$ divides the
+average excess return by the standard deviation of the excess returns.
 
 ``` r
-Sharpes_5yr = xsEr/xssigma
-Sharpes_5yr |> round(digits=2)
+Sharpes = xsEr / xssigma
+Sharpes |> round(digits=2)
 ```
 
-    ##      SPY     NVDA     TSLA     MSTR      BTC      ETH      ADA PORT5050 PORT9505 
-    ##     0.18     0.38     0.20     0.17     0.18     0.18     0.11     0.19     0.19
+    ##       SPY      NVDA      TSLA      MSTR       BTC       ETH       ADA PORT_5050 PORT_9505 
+    ##      0.20      0.30      0.03      0.05      0.07      0.04     -0.02      0.11      0.19
 
-## Betas
+### Risk-Return Scatter Plot
 
-Another important distinction that is often made in finance is
-decomposing risk (volatility) into systematic piece and an idiosyncratic
-piece. In the Capital Asset Pricing Model, systematic risk is
-effectively the portion of an asset/portfolio’s return that can be
-explained by a single market factor. This concept has branched off a
-vast literature on asset pricing, which includes multifactor models. We
-will stick with the single-factor CAPM where the S&P 500 returns are a
-fairly typical measure of broader market movements.
-
-$r_i - r_f = \alpha + \beta*(r_m - r_f) +\epsilon$
-
-In the above equation, $r_i$ is the real excess return for company $i$,
-$r_f$ is the real risk-free rate, and $r_m$ is the real market return.
-We then use our data to estimate $\alpha$ and $\beta$, and then our
-model errors are represented by $\epsilon$.
-
-To fit the CAPM relationship, we estimate a linear regression of the
-NVDA excess returns on the market (S&P500) excess returns. The summary
-function prints the regression estimates/results, and then ggplot lets
-us easily plot the relationship. For NVDA, we get a beta estimate
-reasonably close to 1, which suggests that Alphabet has roughly an equal
-level of systematic risk as the market as a whole (or at least as
-measured by the S&P 500). Thus, the interpretation is that if the market
-goes up or down by 1%, we would expect that NVDA would also increase or
-decrease by the same amount (percentage-wise).
-
-Then let’s make note of the strength of the fit with the $R^2>0.5$.
-Theoretically, this would indicate the percent of variation in NVDA that
-is explained by broader market movements, but since NVDA is a major
-component of the S&P 500, that might not be the best interpretation for
-this particular example. In other words, it shouldn’t be surprising that
-the beta for NVDA is close to 1.
-
-The last bit of info that we will make note of from these results is the
-`(Intercept)` coefficient. In CAPM, this estimate of ‘alpha’ represents
-the average annual outperformance of the asset over the market. Thus,
-NVDA has outperformed the market on average over the past 5 years.
+One of the most intuitive ways to visualize the risk-return tradeoff is
+to plot expected returns against volatility. This creates a scatter plot
+where assets in the upper-left quadrant (high return, low risk) are most
+desirable, while assets in the lower-right quadrant (low return, high
+risk) are least desirable.
 
 ``` r
-NVDAfit = lm(NVDA~SPY,data=XS)
-summary(NVDAfit)
+# Create data frame for plotting
+risk_return_df = data.frame(
+  Asset = names(xsEr),
+  ExpectedReturn = as.numeric(xsEr),
+  Volatility = as.numeric(xssigma),
+  SharpeRatio = as.numeric(Sharpes)
+)
+
+ggplot(risk_return_df, aes(x = Volatility, y = ExpectedReturn, label = Asset)) +
+  geom_point(aes(color = SharpeRatio), size = 4, alpha = 0.9) +
+  geom_text(hjust = -0.2, vjust = 0.5, size = 3.5) +
+  scale_x_continuous(limits = c(0, NA)) +
+  scale_color_gradient2(
+    low = "blue",     # negative
+    mid = "grey",     # zero
+    high = "red",     # positive
+    midpoint = 0,
+    name = "Sharpe"
+  ) +
+  labs(
+    title = "Risk-Return Tradeoff: Average Excess Return vs. Volatility",
+    x = "Volatility (Std. Dev. of Excess Returns)",
+    y = "Average Excess Return"
+  ) +
+  theme_minimal()
+```
+
+![](README_files/figure-gfm/riskreturnplot-1.png)<!-- -->
+
+## Betas and the Capital Asset Pricing Model (CAPM)
+
+### Introduction to CAPM
+
+Another important distinction in finance is decomposing risk
+(volatility) into two components: **systematic risk** and
+**idiosyncratic risk**. In the **Capital Asset Pricing Model (CAPM)**,
+systematic risk represents the portion of an asset’s return that can be
+explained by movements in the broader market, while idiosyncratic risk
+is asset-specific and cannot be diversified away.
+
+The single-factor CAPM posits that an asset’s **real excess return** is
+linearly related to the market’s **real excess return**:
+
+$$r_i - r_f = \alpha + \beta \cdot (r_m - r_f) + \epsilon$$
+
+In this equation:
+
+- $r_i$ is the real return for asset $i$
+- $r_f$ is the real risk-free rate
+- $r_m$ is the real market return (typically proxied by a broad market
+  index)
+- $\alpha$ (alpha) is the asset’s excess performance beyond what CAPM
+  predicts
+- $\beta$ (beta) measures the asset’s sensitivity to market movements
+- $\epsilon$ represents the regression error (idiosyncratic return)
+
+We estimate $\alpha$ and $\beta$ by regressing the asset’s **real excess
+returns** on the market’s **real excess returns**. The interpretation of
+beta is as follows:
+
+- **Beta = 1**: The asset moves one-to-one with the market
+- **Beta \> 1**: The asset has amplified market sensitivity (higher
+  systematic risk)
+- **Beta \< 1**: The asset has dampened market sensitivity (lower
+  systematic risk)
+- **Beta ≈ 0**: The asset is largely uncorrelated with market movements
+
+**Important note on methodology:** Our analysis uses **real excess
+returns** (inflation-adjusted returns minus the risk-free rate) for both
+the asset and the market. Many online sources (such as Yahoo Finance or
+commercial stock screeners) report betas estimated using **nominal
+returns** without inflation adjustment. This difference in methodology
+may cause our beta estimates to differ slightly from those published
+elsewhere. The real return approach is theoretically more rigorous for
+long-term analysis, as it accounts for inflation’s impact on purchasing
+power.
+
+### Single-Factor CAPM with the Market Index
+
+We will now estimate CAPM regressions for all assets using the market
+index (as specified in the parameters) as the single factor. To
+streamline the analysis and make it easy to change assets or the market
+index, we’ll create a helper function that fits the model, extracts key
+statistics, and generates a scatter plot.
+
+``` r
+# Helper function to fit CAPM regression and return results
+fit_capm = function(asset_name, factor_name, data, plot_color = "darkred") {
+  # Build the formula dynamically
+  fml = as.formula(paste(asset_name, "~", factor_name))
+  
+  # Fit the model
+  model = lm(fml, data = data)
+  
+  # Extract key statistics
+  beta = coef(model)[2]
+  alpha = coef(model)[1]
+  r_squared = summary(model)$r.squared
+  
+  # Create the scatter plot with regression line using tidy evaluation
+  plot_obj = ggplot(data, aes(x = .data[[factor_name]], y = .data[[asset_name]])) +
+    geom_point(alpha = 0.6, size = 3) +
+    geom_smooth(method = "lm", color = plot_color, se = TRUE) +
+    labs(
+      title = paste(asset_name, "vs.", factor_name, "CAPM Regression"),
+      x = paste(factor_name, "Excess Returns"),
+      y = paste(asset_name, "Excess Returns")
+    ) +
+    theme_minimal()
+  
+  # Return a list with the model, statistics, and plot
+  return(list(
+    model = model,
+    beta = beta,
+    alpha = alpha,
+    r_squared = r_squared,
+    plot = plot_obj
+  ))
+}
+```
+
+Now let’s fit CAPM regressions for all assets in our dataset using the
+market index.
+
+``` r
+# Get list of all assets that actually exist in XS (excluding the market index itself initially)
+capm_assets = intersect(asset_cols, colnames(XS))
+capm_assets = setdiff(capm_assets, market_index)
+
+# Add the market index itself (to get beta=1 as expected)
+capm_assets = c(market_index, capm_assets)
+
+# Fit CAPM for each asset
+capm_results = list()
+for (asset in capm_assets) {
+  # Only proceed if both asset and market_index are in XS
+  if (asset %in% colnames(XS) && market_index %in% colnames(XS)) {
+    capm_results[[asset]] = fit_capm(asset, market_index, XS, plot_color = "darkred")
+  } else {
+    warning(sprintf("Skipping %s: not found in XS", asset))
+  }
+}
+```
+
+    ## Warning in model.matrix.default(mt, mf, contrasts): the response appeared on the right-hand side and was dropped
+
+    ## Warning in model.matrix.default(mt, mf, contrasts): problem with term 1 in model.matrix: no columns are assigned
+
+Let’s examine several key examples in detail to illustrate how to
+interpret these CAPM regressions. The regression output provides several
+important pieces of information:
+
+- **Beta coefficient**: Measures systematic risk relative to the market
+- **Alpha (intercept)**: Represents average outperformance or
+  underperformance relative to CAPM predictions
+- **R-squared**: Indicates the proportion of return variance explained
+  by market movements
+- **Statistical significance**: t-statistics and p-values test whether
+  coefficients differ from zero
+
+For each asset below, we’ll examine these metrics and discuss their
+economic interpretation.
+
+``` r
+cat("\n=== NVDA Analysis ===\n")
+```
+
+    ## 
+    ## === NVDA Analysis ===
+
+``` r
+summary(capm_results[["NVDA"]]$model)
 ```
 
     ## 
     ## Call:
-    ## lm(formula = NVDA ~ SPY, data = XS)
+    ## lm(formula = fml, data = data)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -323.24  -85.07  -19.53   66.58  317.31 
+    ## -246.61  -60.73   -1.54   55.98  332.08 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  43.3059    16.7288   2.589   0.0122 *  
-    ## SPY           1.5721     0.2654   5.922 1.83e-07 ***
+    ## (Intercept)  24.9314    15.2398   1.636    0.107    
+    ## SPY           2.3096     0.2971   7.772 1.48e-10 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 127.5 on 58 degrees of freedom
-    ## Multiple R-squared:  0.3768, Adjusted R-squared:  0.3661 
-    ## F-statistic: 35.07 on 1 and 58 DF,  p-value: 1.83e-07
+    ## Residual standard error: 115.7 on 58 degrees of freedom
+    ## Multiple R-squared:  0.5102, Adjusted R-squared:  0.5017 
+    ## F-statistic: 60.41 on 1 and 58 DF,  p-value: 1.475e-10
 
 ``` r
-ggplot(XS,aes(x=SPY,y=NVDA))+
-  geom_point()+
-  geom_smooth(method="lm")
+print(capm_results[["NVDA"]]$plot)
 ```
 
     ## `geom_smooth()` using formula = 'y ~ x'
 
-![](README_files/figure-gfm/NVDAfit-1.png)<!-- -->
+![](README_files/figure-gfm/nvda_detail-1.png)<!-- -->
 
-Now with Apple, we get a slightly larger beta, which suggests that a 1%
-increase in the market is expected to correspond with an amplified
-increase in the price of TSLA. Similarly, a 1% decline in the market
-would be expected to correlate with a larger decrease in the price of
-TSLA. Along with this larger systematic risk, the alpha estimate shows
-that TSLA has compensated for this higher risk with a higher average
-return over the market.
+The NVDA results show the relationship between this technology stock and
+the broader market. If NVDA is a major component of the market index, we
+would expect to see a relatively high beta and R-squared, as the
+company’s performance significantly influences the index itself.
 
 ``` r
-TSLAfit = lm(TSLA~SPY,data=XS)
-summary(TSLAfit)
+cat("\n=== TSLA Analysis ===\n")
+```
+
+    ## 
+    ## === TSLA Analysis ===
+
+``` r
+summary(capm_results[["TSLA"]]$model)
 ```
 
     ## 
     ## Call:
-    ## lm(formula = TSLA ~ SPY, data = XS)
+    ## lm(formula = fml, data = data)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -405.45  -90.34  -16.27  150.67  491.60 
+    ## -400.72  -90.73   -7.24  135.00  282.14 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  22.3749    25.5718   0.875    0.385    
-    ## SPY           2.0835     0.4058   5.135 3.44e-06 ***
+    ## (Intercept) -11.8587    23.0191  -0.515 0.608395    
+    ## SPY           1.7382     0.4488   3.873 0.000276 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 194.9 on 58 degrees of freedom
-    ## Multiple R-squared:  0.3125, Adjusted R-squared:  0.3007 
-    ## F-statistic: 26.37 on 1 and 58 DF,  p-value: 3.442e-06
+    ## Residual standard error: 174.8 on 58 degrees of freedom
+    ## Multiple R-squared:  0.2055, Adjusted R-squared:  0.1918 
+    ## F-statistic:    15 on 1 and 58 DF,  p-value: 0.0002759
 
 ``` r
-ggplot(XS,aes(x=SPY,y=TSLA))+
-  geom_point()+
-  geom_smooth(method="lm")
+print(capm_results[["TSLA"]]$plot)
 ```
 
     ## `geom_smooth()` using formula = 'y ~ x'
 
-![](README_files/figure-gfm/TSLAfit-1.png)<!-- -->
+![](README_files/figure-gfm/tsla_detail-1.png)<!-- -->
 
-With Tesla, we see there is a much larger beta estimate. This also
-corresponds with a larger alpha suggesting this increased systematic
-risk has been compensated well. However, the strength of this
-relationship is weaker than the previous two examples. Although Tesla is
-still a fairly recent addition to the S&P 500 (late-2020), it has
-quickly jumped into one of the top 10 spots in terms of market
-capitalization (and thus, weight in the index). However, it remains
-smaller than both Alphabet and Apple, so the weaker relationship is not
-surprising.
+Tesla’s results reflect its position as a high-growth company in the
+automotive and energy sectors. The beta estimate reveals how sensitive
+Tesla’s returns are to overall market movements, while the alpha
+captures any systematic outperformance or underperformance during the
+sample period.
 
 ``` r
-MSTRfit = lm(MSTR~SPY,data=XS)
-summary(MSTRfit)
+cat("\n=== MSTR Analysis ===\n")
+```
+
+    ## 
+    ## === MSTR Analysis ===
+
+``` r
+summary(capm_results[["MSTR"]]$model)
 ```
 
     ## 
     ## Call:
-    ## lm(formula = MSTR ~ SPY, data = XS)
+    ## lm(formula = fml, data = data)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -529.72 -189.52    6.43  163.04  645.92 
+    ## -527.35 -214.43  -29.16  171.49  654.17 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  23.1505    35.8394   0.646    0.521    
-    ## SPY           2.5914     0.5687   4.557 2.73e-05 ***
+    ## (Intercept) -18.3842    35.9957  -0.511    0.611    
+    ## SPY           3.2511     0.7018   4.632 2.09e-05 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 273.2 on 58 degrees of freedom
-    ## Multiple R-squared:  0.2636, Adjusted R-squared:  0.2509 
-    ## F-statistic: 20.76 on 1 and 58 DF,  p-value: 2.725e-05
+    ## Residual standard error: 273.3 on 58 degrees of freedom
+    ## Multiple R-squared:  0.2701, Adjusted R-squared:  0.2575 
+    ## F-statistic: 21.46 on 1 and 58 DF,  p-value: 2.091e-05
 
 ``` r
-ggplot(XS,aes(x=SPY,y=MSTR))+
-  geom_point()+
-  geom_smooth(method="lm")
+print(capm_results[["MSTR"]]$plot)
 ```
 
     ## `geom_smooth()` using formula = 'y ~ x'
 
-![](README_files/figure-gfm/MSTRfit-1.png)<!-- -->
+![](README_files/figure-gfm/mstr_detail-1.png)<!-- -->
 
-Similarly, we can calculate the beta for our other assets and
-portfolios.
+MicroStrategy presents an interesting case due to the company’s
+aggressive Bitcoin acquisition strategy. The R-squared statistic is
+particularly informative here—it reveals what proportion of MSTR’s
+volatility can be explained by traditional market movements versus other
+factors (notably, Bitcoin price fluctuations). A lower R-squared
+compared to other equities would suggest that non-market factors drive a
+significant portion of MSTR’s returns.
+
+Now let’s visualize all the CAPM regressions at once using a faceted
+plot. This allows us to compare systematic risk across all assets
+simultaneously and identify patterns across asset classes.
 
 ``` r
-BTCfit = lm(BTC~SPY,data=XS)
-summary(BTCfit)
+# Prepare data for faceted plot
+capm_plot_data = data.frame()
+for (asset in capm_assets) {
+  temp_df = data.frame(
+    Asset = asset,
+    MarketReturn = as.numeric(XS[, market_index]),
+    AssetReturn = as.numeric(XS[, asset])
+  )
+  capm_plot_data = rbind(capm_plot_data, temp_df)
+}
+
+# Create faceted scatter plot
+ggplot(capm_plot_data, aes(x = MarketReturn, y = AssetReturn)) +
+  geom_point(alpha = 0.5, size = 2) +
+  geom_smooth(method = "lm", color = "darkred", se = FALSE, linewidth = 1) +
+  facet_wrap(~ Asset, scales = "free_y", ncol = 3) +
+  labs(
+    title = paste("CAPM Regressions: All Assets vs.", market_index),
+    x = paste(market_index, "Excess Returns (%)"),
+    y = "Asset Excess Returns (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    strip.text = element_text(size = 10, face = "bold"),
+    axis.text.x = element_text(size = 8)
+  )
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](README_files/figure-gfm/capm_faceted_plot-1.png)<!-- -->
+
+**Model limitations:** The single-factor CAPM is a simplified model with
+several important limitations. First, it assumes a linear relationship
+between asset and market returns, which may not hold during market
+stress or for assets with option-like characteristics. Second, monthly
+sampling may miss important intra-month dynamics and return patterns.
+Third, cryptocurrencies often violate traditional CAPM assumptions (such
+as normally distributed returns and rational investors), making beta
+estimates less reliable for these assets. Despite these limitations,
+CAPM provides a useful baseline for understanding systematic risk and
+serves as a foundation for more sophisticated multi-factor models.
+
+### Crypto Factor Models
+
+As an alternative perspective, we can estimate “crypto-betas” by using a
+cryptocurrency (as specified in the parameters) as the market factor
+instead of a traditional equity index. This is particularly useful for
+understanding how altcoins relate to the dominant cryptocurrency in the
+market.
+
+For cryptocurrencies, we expect higher R-squared values when regressed
+against the crypto index compared to traditional equity indices, since
+crypto assets tend to share common drivers (regulatory news, adoption
+trends, technological developments, market sentiment) that are distinct
+from traditional equity markets.
+
+``` r
+# Define the crypto assets to analyze (those available in XS, excluding the crypto index itself)
+all_potential_crypto = c("ETH", "ADA")
+crypto_assets = intersect(all_potential_crypto, colnames(XS))
+crypto_assets = setdiff(crypto_assets, crypto_index)
+
+# Fit crypto-CAPM for each crypto asset
+crypto_capm_results = list()
+for (asset in crypto_assets) {
+  if (asset %in% colnames(XS) && crypto_index %in% colnames(XS)) {
+    crypto_capm_results[[asset]] = fit_capm(asset, crypto_index, XS, plot_color = "darkblue")
+  }
+}
+```
+
+Let’s examine the crypto-beta regressions in detail:
+
+``` r
+if ("ETH" %in% names(crypto_capm_results)) {
+  cat("\n=== ETH vs", crypto_index, "Analysis ===\n")
+  summary(crypto_capm_results[["ETH"]]$model)
+  print(crypto_capm_results[["ETH"]]$plot)
+}
 ```
 
     ## 
+    ## === ETH vs BTC Analysis ===
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](README_files/figure-gfm/eth_crypto_detail-1.png)<!-- -->
+
+``` r
+if ("ADA" %in% names(crypto_capm_results)) {
+  cat("\n=== ADA vs", crypto_index, "Analysis ===\n")
+  summary(crypto_capm_results[["ADA"]]$model)
+  print(crypto_capm_results[["ADA"]]$plot)
+}
+```
+
+    ## 
+    ## === ADA vs BTC Analysis ===
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](README_files/figure-gfm/ada_crypto_detail-1.png)<!-- -->
+
+We can also examine the relationship between different altcoins
+directly. This provides insight into how these cryptocurrencies co-move
+beyond their shared relationship with the dominant cryptocurrency:
+
+``` r
+if (all(c("ADA", "ETH") %in% colnames(XS))) {
+  ada_eth_result = fit_capm("ADA", "ETH", XS, plot_color = "darkblue")
+  cat("\n=== ADA vs ETH Analysis ===\n")
+  summary(ada_eth_result$model)
+  print(ada_eth_result$plot)
+}
+```
+
+    ## 
+    ## === ADA vs ETH Analysis ===
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](README_files/figure-gfm/ada_eth_fit-1.png)<!-- -->
+
+Now let’s create a faceted plot for all crypto relationships:
+
+``` r
+# Prepare data for crypto faceted plot
+crypto_plot_data = data.frame()
+
+# Crypto index vs altcoins
+for (asset in crypto_assets) {
+  if (asset %in% colnames(XS) && crypto_index %in% colnames(XS)) {
+    temp_df = data.frame(
+      Asset = asset,
+      FactorReturn = as.numeric(XS[, crypto_index]),
+      AssetReturn = as.numeric(XS[, asset]),
+      Factor = crypto_index,
+      Relationship = paste(asset, "vs.", crypto_index)
+    )
+    crypto_plot_data = rbind(crypto_plot_data, temp_df)
+  }
+}
+
+# ETH vs ADA (if both exist)
+if (all(c("ETH", "ADA") %in% colnames(XS))) {
+  temp_df = data.frame(
+    Asset = "ADA",
+    FactorReturn = as.numeric(XS[, "ETH"]),
+    AssetReturn = as.numeric(XS[, "ADA"]),
+    Factor = "ETH",
+    Relationship = "ADA vs. ETH"
+  )
+  crypto_plot_data = rbind(crypto_plot_data, temp_df)
+}
+
+# Create faceted scatter plot
+if (nrow(crypto_plot_data) > 0) {
+  ggplot(crypto_plot_data, aes(x = FactorReturn, y = AssetReturn)) +
+    geom_point(alpha = 0.5, size = 2, color = "darkblue") +
+    geom_smooth(method = "lm", color = "darkblue", se = FALSE, linewidth = 1) +
+    facet_wrap(~ Relationship, scales = "free", ncol = 2) +
+    labs(
+      title = "Crypto Factor Models: Altcoin Relationships",
+      x = "Factor Excess Returns (%)",
+      y = "Asset Excess Returns (%)"
+    ) +
+    theme_minimal() +
+    theme(
+      strip.text = element_text(size = 10, face = "bold")
+    )
+}
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](README_files/figure-gfm/crypto_faceted_plot-1.png)<!-- -->
+
+**Interpretation:** Comparing the R-squared values from crypto-to-crypto
+regressions with those from crypto-to-equity-index regressions reveals
+the extent to which cryptocurrencies represent a distinct asset class.
+Higher explanatory power in crypto-to-crypto models confirms that these
+assets share common risk factors separate from traditional equity
+markets. The magnitude and significance of the beta coefficients
+indicate how volatility transmits across the cryptocurrency ecosystem.
+Significant alpha coefficients suggest that certain altcoins
+systematically outperform or underperform relative to their
+beta-adjusted exposure to the dominant cryptocurrency.
+
+### Two-Factor Models for Bitcoin-Exposed Equities
+
+Some equities have direct exposure to cryptocurrencies through corporate
+treasury holdings or business operations. For these companies, a
+**two-factor model** that includes both a traditional market index and a
+cryptocurrency may provide better explanatory power than a single-factor
+CAPM.
+
+We’ll examine equities with known cryptocurrency exposure and compare
+single-factor models to two-factor models to assess whether
+cryptocurrency exposure adds meaningful explanatory power.
+
+``` r
+if (all(c("MSTR", crypto_index) %in% colnames(XS))) {
+  cat("\n=== MSTR vs", crypto_index, "Single-Factor Analysis ===\n")
+  mstr_btc_result = fit_capm("MSTR", crypto_index, XS, plot_color = "purple")
+  summary(mstr_btc_result$model)
+  print(mstr_btc_result$plot)
+}
+```
+
+    ## 
+    ## === MSTR vs BTC Single-Factor Analysis ===
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](README_files/figure-gfm/mstr_btc-1.png)<!-- -->
+
+Now let’s fit a two-factor model that includes both the traditional
+market index and cryptocurrency exposure:
+
+``` r
+if (all(c("MSTR", market_index, crypto_index) %in% colnames(XS))) {
+  cat("\n=== MSTR Two-Factor Model ===\n")
+  mstr_two_factor = lm(as.formula(paste("MSTR ~", market_index, "+", crypto_index)), data = XS)
+  summary(mstr_two_factor)
+}
+```
+
+    ## 
+    ## === MSTR Two-Factor Model ===
+
+    ## 
     ## Call:
-    ## lm(formula = BTC ~ SPY, data = XS)
+    ## lm(formula = as.formula(paste("MSTR ~", market_index, "+", crypto_index)), 
+    ##     data = XS)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -515.70 -114.49  -14.25  127.21  359.69 
+    ## -492.22 -126.61   -5.38  121.82  447.75 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  16.6669    24.0777   0.692    0.492    
-    ## SPY           1.9180     0.3821   5.020 5.22e-06 ***
+    ## (Intercept) -12.8995    25.7706  -0.501   0.6186    
+    ## SPY           1.1081     0.5779   1.918   0.0602 .  
+    ## BTC           1.1378     0.1517   7.500 4.67e-10 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 183.5 on 58 degrees of freedom
-    ## Multiple R-squared:  0.3029, Adjusted R-squared:  0.2909 
-    ## F-statistic:  25.2 on 1 and 58 DF,  p-value: 5.225e-06
+    ## Residual standard error: 195.6 on 57 degrees of freedom
+    ## Multiple R-squared:  0.6326, Adjusted R-squared:  0.6197 
+    ## F-statistic: 49.07 on 2 and 57 DF,  p-value: 4.04e-13
+
+**Interpretation for two-factor models:** The key insight comes from
+comparing R-squared values across models and examining the statistical
+significance of each factor’s coefficient. If both the market index and
+cryptocurrency coefficients are statistically significant, this
+indicates that the company’s returns are driven by both traditional
+market exposure and cryptocurrency exposure. An increase in R-squared
+compared to single-factor models quantifies the improvement in
+explanatory power. The magnitude of each coefficient reveals the
+relative importance of each risk factor—a larger cryptocurrency
+coefficient suggests that crypto price movements have a stronger impact
+on the company’s returns than traditional market movements.
+
+Similarly, let’s examine other equities with cryptocurrency holdings:
 
 ``` r
-ggplot(XS,aes(y=BTC,x=SPY))+
-  geom_point()+
-  geom_smooth(method="lm")
-```
-
-    ## `geom_smooth()` using formula = 'y ~ x'
-
-![](README_files/figure-gfm/btcfit-1.png)<!-- -->
-
-``` r
-ETHfit = lm(ETH~SPY,data=XS)
-summary(ETHfit)
+if (all(c("TSLA", crypto_index) %in% colnames(XS))) {
+  cat("\n=== TSLA vs", crypto_index, "Single-Factor Analysis ===\n")
+  tsla_btc_result = fit_capm("TSLA", crypto_index, XS, plot_color = "purple")
+  summary(tsla_btc_result$model)
+  print(tsla_btc_result$plot)
+}
 ```
 
     ## 
+    ## === TSLA vs BTC Single-Factor Analysis ===
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](README_files/figure-gfm/tsla_btc-1.png)<!-- -->
+
+``` r
+if (all(c("TSLA", market_index, crypto_index) %in% colnames(XS))) {
+  cat("\n=== TSLA Two-Factor Model ===\n")
+  tsla_two_factor = lm(as.formula(paste("TSLA ~", market_index, "+", crypto_index)), data = XS)
+  summary(tsla_two_factor)
+}
+```
+
+    ## 
+    ## === TSLA Two-Factor Model ===
+
+    ## 
     ## Call:
-    ## lm(formula = ETH ~ SPY, data = XS)
+    ## lm(formula = as.formula(paste("TSLA ~", market_index, "+", crypto_index)), 
+    ##     data = XS)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -412.22 -114.95   -5.44  132.60  680.81 
+    ## -424.92  -83.75    0.53  130.03  282.44 
     ## 
     ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  18.2215    28.4995   0.639    0.525    
-    ## SPY           2.7860     0.4522   6.161 7.39e-08 ***
+    ##             Estimate Std. Error t value Pr(>|t|)  
+    ## (Intercept) -10.7798    22.6772  -0.475   0.6363  
+    ## SPY           1.3166     0.5085   2.589   0.0122 *
+    ## BTC           0.2238     0.1335   1.676   0.0991 .
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 217.2 on 58 degrees of freedom
-    ## Multiple R-squared:  0.3955, Adjusted R-squared:  0.3851 
-    ## F-statistic: 37.95 on 1 and 58 DF,  p-value: 7.395e-08
+    ## Residual standard error: 172.1 on 57 degrees of freedom
+    ## Multiple R-squared:  0.2428, Adjusted R-squared:  0.2162 
+    ## F-statistic: 9.138 on 2 and 57 DF,  p-value: 0.0003611
+
+The results for this analysis depend critically on the size and nature
+of the company’s cryptocurrency exposure. For companies where
+cryptocurrency holdings represent a large fraction of their balance
+sheet or business model, we expect the cryptocurrency factor to be
+highly significant. For companies where cryptocurrency holdings are more
+modest, the traditional market factor will dominate, and the
+cryptocurrency coefficient may not be statistically significant at
+conventional levels.
+
+Let’s create a visualization comparing cryptocurrency exposure across
+these companies:
 
 ``` r
-ggplot(XS,aes(y=ETH,x=SPY))+
-  geom_point()+
-  geom_smooth(method="lm")
+# Prepare data for Bitcoin exposure comparison
+btc_exposure_data = data.frame()
+
+# Identify companies with potential crypto exposure
+crypto_exposed_companies = c("MSTR", "TSLA")
+
+for (company in crypto_exposed_companies) {
+  if (all(c(company, crypto_index) %in% colnames(XS))) {
+    temp_df = data.frame(
+      Company = company,
+      FactorReturn = as.numeric(XS[, crypto_index]),
+      CompanyReturn = as.numeric(XS[, company])
+    )
+    btc_exposure_data = rbind(btc_exposure_data, temp_df)
+  }
+}
+
+# Create faceted scatter plot
+if (nrow(btc_exposure_data) > 0) {
+  ggplot(btc_exposure_data, aes(x = FactorReturn, y = CompanyReturn)) +
+    geom_point(alpha = 0.5, size = 2, color = "purple") +
+    geom_smooth(method = "lm", color = "purple", se = TRUE, linewidth = 1) +
+    facet_wrap(~ Company, scales = "free_y") +
+    labs(
+      title = paste("Cryptocurrency Exposure Analysis:", paste(crypto_exposed_companies, collapse = " and ")),
+      x = paste(crypto_index, "Excess Returns (%)"),
+      y = "Company Excess Returns (%)"
+    ) +
+    theme_minimal() +
+    theme(
+      strip.text = element_text(size = 11, face = "bold")
+    )
+}
 ```
 
     ## `geom_smooth()` using formula = 'y ~ x'
 
-![](README_files/figure-gfm/ethfit-1.png)<!-- -->
+![](README_files/figure-gfm/btc_exposure_plot-1.png)<!-- -->
+
+### Extensions and Other Asset Pricing Factors
+
+The single-factor CAPM and simple two-factor models we’ve explored here
+represent just the beginning of asset pricing research. Several
+important extensions have been developed to address CAPM’s limitations:
+
+**Fama-French Three-Factor Model:** Extends CAPM by adding size (SMB -
+Small Minus Big) and value (HML - High Minus Low) factors, which have
+been shown to explain cross-sectional variation in stock returns better
+than market beta alone.
+
+**Fama-French Five-Factor Model:** Adds profitability (RMW - Robust
+Minus Weak) and investment (CMA - Conservative Minus Aggressive) factors
+to further improve explanatory power.
+
+**Momentum Factor:** Assets that have performed well (poorly) in the
+recent past tend to continue performing well (poorly) in the near
+future, suggesting momentum as an additional risk factor.
+
+**Liquidity Factors:** Assets with lower liquidity (higher trading
+costs, lower volume) may command a premium to compensate investors for
+this additional risk.
+
+**Macro Factors:** Economic variables such as GDP growth, inflation
+surprises, term spread, and credit spread can serve as systematic risk
+factors in multi-factor models.
+
+For cryptocurrency analysis specifically, researchers have begun
+exploring crypto-specific factors such as mining difficulty, network
+activity, regulatory sentiment indices, and cross-chain correlation
+structures. As the cryptocurrency market matures, we expect more
+sophisticated factor models to emerge that better capture the unique
+risk characteristics of digital assets.
+
+## Summary Statistics Table
+
+Finally, let’s create a comprehensive summary table that compares all
+key metrics across assets. This table integrates the expected returns,
+volatility, Sharpe ratios, and CAPM statistics (beta, alpha, and
+R-squared) into a single, easy-to-read format.
 
 ``` r
-ADAfit = lm(ADA~SPY,data=XS)
-summary(ADAfit)
+# Extract beta, alpha, and R-squared from CAPM results
+betas = sapply(capm_assets, function(a) {
+  if (a %in% names(capm_results)) {
+    capm_results[[a]]$beta
+  } else {
+    NA
+  }
+})
+
+alphas = sapply(capm_assets, function(a) {
+  if (a %in% names(capm_results)) {
+    capm_results[[a]]$alpha
+  } else {
+    NA
+  }
+})
+
+r_squared = sapply(capm_assets, function(a) {
+  if (a %in% names(capm_results)) {
+    capm_results[[a]]$r_squared
+  } else {
+    NA
+  }
+})
+
+# Create summary table
+summary_table = data.frame(
+  Asset = capm_assets,
+  Expected_Return = round(as.numeric(xsEr[capm_assets]), 2),
+  Volatility = round(as.numeric(xssigma[capm_assets]), 2),
+  Sharpe_Ratio = round(as.numeric(Sharpes[capm_assets]), 2),
+  Beta = round(betas, 2),
+  Alpha = round(alphas, 2),
+  R_Squared = round(r_squared, 3)
+)
+
+print(summary_table)
 ```
 
-    ## 
-    ## Call:
-    ## lm(formula = ADA ~ SPY, data = XS)
-    ## 
-    ## Residuals:
-    ##     Min      1Q  Median      3Q     Max 
-    ## -509.68 -192.30  -62.58  117.14 1430.33 
-    ## 
-    ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   7.9627    43.3381   0.184 0.854863    
-    ## SPY           2.8508     0.6877   4.146 0.000112 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 330.3 on 58 degrees of freedom
-    ## Multiple R-squared:  0.2286, Adjusted R-squared:  0.2153 
-    ## F-statistic: 17.19 on 1 and 58 DF,  p-value: 0.0001118
+    ##                   Asset Expected_Return Volatility Sharpe_Ratio Beta  Alpha R_Squared
+    ## SPY.NA              SPY           10.17      50.69         0.20   NA  10.17     0.000
+    ## NVDA.SPY           NVDA           48.42     163.91         0.30 2.31  24.93     0.510
+    ## TSLA.SPY           TSLA            5.82     194.40         0.03 1.74 -11.86     0.205
+    ## MSTR.SPY           MSTR           14.68     317.15         0.05 3.25 -18.38     0.270
+    ## BTC.SPY             BTC           14.33     193.10         0.07 1.88  -4.82     0.245
+    ## ETH.SPY             ETH            9.52     244.80         0.04 3.01 -21.08     0.388
+    ## ADA.SPY             ADA           -5.65     370.79        -0.02 2.78 -33.92     0.144
+    ## PORT_5050.SPY PORT_5050           12.25     111.28         0.11 1.44  -2.41     0.431
+    ## PORT_9505.SPY PORT_9505           10.38      53.59         0.19 1.04  -0.24     0.975
 
-``` r
-ggplot(XS,aes(y=ADA,x=SPY))+
-  geom_point()+
-  geom_smooth(method="lm")
-```
+This table provides a comprehensive comparison of:
 
-    ## `geom_smooth()` using formula = 'y ~ x'
+- **Expected_Return:** Average real excess return (annualized %)
+- **Volatility:** Standard deviation of real excess returns (annualized
+  %)
+- **Sharpe_Ratio:** Risk-adjusted performance (excess return per unit of
+  volatility)
+- **Beta:** Systematic risk relative to the market index
+- **Alpha:** Excess performance beyond what CAPM predicts (annualized %)
+- **R_Squared:** Proportion of return variance explained by the market
+  factor
 
-![](README_files/figure-gfm/adafit-1.png)<!-- -->
-
-Now let’s check out the portfolios. Since the S&P 500 is one of the two
-weights, the beta will transition from bitcoin’s beta at $w_{BTC}=1$ to
-a beta of 1 at $w_{BTC}=0$.
-
-``` r
-PORT5050fit = lm(PORT5050~SPY,data=XS)
-summary(PORT5050fit)
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = PORT5050 ~ SPY, data = XS)
-    ## 
-    ## Residuals:
-    ##      Min       1Q   Median       3Q      Max 
-    ## -257.851  -57.244   -7.124   63.605  179.843 
-    ## 
-    ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)    8.334     12.039   0.692    0.492    
-    ## SPY            1.459      0.191   7.637 2.49e-10 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 91.76 on 58 degrees of freedom
-    ## Multiple R-squared:  0.5014, Adjusted R-squared:  0.4928 
-    ## F-statistic: 58.33 on 1 and 58 DF,  p-value: 2.487e-10
-
-``` r
-ggplot(XS,aes(y=PORT5050,x=SPY))+
-  geom_point()+
-  geom_smooth(method="lm")
-```
-
-    ## `geom_smooth()` using formula = 'y ~ x'
-
-![](README_files/figure-gfm/port1fit-1.png)<!-- -->
-
-``` r
-PORT9505fit = lm(PORT9505~SPY,data=XS)
-summary(PORT9505fit)
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = PORT9505 ~ SPY, data = XS)
-    ## 
-    ## Residuals:
-    ##      Min       1Q   Median       3Q      Max 
-    ## -25.7851  -5.7244  -0.7124   6.3605  17.9843 
-    ## 
-    ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   0.8334     1.2039   0.692    0.492    
-    ## SPY           1.0459     0.0191  54.751   <2e-16 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 9.176 on 58 degrees of freedom
-    ## Multiple R-squared:  0.981,  Adjusted R-squared:  0.9807 
-    ## F-statistic:  2998 on 1 and 58 DF,  p-value: < 2.2e-16
-
-``` r
-ggplot(XS,aes(y=PORT9505,x=SPY))+
-  geom_point()+
-  geom_smooth(method="lm")
-```
-
-    ## `geom_smooth()` using formula = 'y ~ x'
-
-![](README_files/figure-gfm/port2fit-1.png)<!-- -->
-
-### Crypto-Betas
-
-As an experiment, we can calculate the “beta” for some of the assets
-using BTC as the market index, rather than the S&P 500. From this, we
-can see from the $R^2$’s that the other cryptos achieve a closer fit
-than they did with the S&P 500. Then the betas under 1 suggest that the
-impact of BTC volatility is dampened when impacting the other cryptos.
-The alphas show that after removing the volatility explained away by
-BTC, both ETH and ADA generated a positive excess real return.
-
-``` r
-ETHBTCfit = lm(ETH~BTC,data=XS)
-summary(ETHBTCfit)
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = ETH ~ BTC, data = XS)
-    ## 
-    ## Residuals:
-    ##     Min      1Q  Median      3Q     Max 
-    ## -280.46 -110.06  -20.12   69.66  511.00 
-    ## 
-    ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  11.3889    22.6816   0.502    0.617    
-    ## BTC           0.9981     0.1034   9.657 1.11e-13 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 173 on 58 degrees of freedom
-    ## Multiple R-squared:  0.6166, Adjusted R-squared:  0.6099 
-    ## F-statistic: 93.26 on 1 and 58 DF,  p-value: 1.113e-13
-
-``` r
-ggplot(XS,aes(y=ETH,x=BTC))+
-  geom_point()+
-  geom_smooth(method="lm")
-```
-
-    ## `geom_smooth()` using formula = 'y ~ x'
-
-![](README_files/figure-gfm/ethbtcfit-1.png)<!-- -->
-
-``` r
-ADABTCfit = lm(ADA~BTC,data=XS)
-summary(ADABTCfit)
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = ADA ~ BTC, data = XS)
-    ## 
-    ## Residuals:
-    ##     Min      1Q  Median      3Q     Max 
-    ## -447.56 -184.87  -55.55  143.03 1166.35 
-    ## 
-    ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   1.4304    39.8132   0.036    0.971    
-    ## BTC           1.0093     0.1814   5.563 7.06e-07 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 303.7 on 58 degrees of freedom
-    ## Multiple R-squared:  0.348,  Adjusted R-squared:  0.3367 
-    ## F-statistic: 30.95 on 1 and 58 DF,  p-value: 7.062e-07
-
-``` r
-ggplot(XS,aes(y=ADA,x=BTC))+
-  geom_point()+
-  geom_smooth(method="lm")
-```
-
-    ## `geom_smooth()` using formula = 'y ~ x'
-
-![](README_files/figure-gfm/adabtcfit-1.png)<!-- -->
-
-We can also regress the ADA excess returns on the ETH excess returns.
-
-``` r
-ADAETHfit = lm(ADA~ETH,data=XS)
-summary(ADAETHfit)
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = ADA ~ ETH, data = XS)
-    ## 
-    ## Residuals:
-    ##     Min      1Q  Median      3Q     Max 
-    ## -408.39 -175.58  -46.23  124.37 1455.06 
-    ## 
-    ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  -2.6442    37.9210  -0.070    0.945    
-    ## ETH           0.8610     0.1359   6.338 3.76e-08 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 289.1 on 58 degrees of freedom
-    ## Multiple R-squared:  0.4092, Adjusted R-squared:  0.399 
-    ## F-statistic: 40.17 on 1 and 58 DF,  p-value: 3.757e-08
-
-``` r
-ggplot(XS,aes(y=ADA,x=ETH))+
-  geom_point()+
-  geom_smooth(method="lm")
-```
-
-    ## `geom_smooth()` using formula = 'y ~ x'
-
-![](README_files/figure-gfm/adaethfit-1.png)<!-- -->
-
-### Case Study: Microstrategy and Bitcoin
-
-Next, we will model Microstrategy’s excess returns as a function of
-Bitcoin’s excess returns. Since Microstrategy has been purchasing
-Bitcoin to hold on their balance sheet, we might expect an interesting,
-strong result.
-
-``` r
-MSTRBTCfit = lm(MSTR~BTC,data=XS)
-summary(MSTRBTCfit)
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = MSTR ~ BTC, data = XS)
-    ## 
-    ## Residuals:
-    ##     Min      1Q  Median      3Q     Max 
-    ## -438.79 -149.12  -24.74  133.76  447.76 
-    ## 
-    ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  12.6460    29.1353   0.434    0.666    
-    ## BTC           1.0369     0.1328   7.810 1.27e-10 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 222.2 on 58 degrees of freedom
-    ## Multiple R-squared:  0.5126, Adjusted R-squared:  0.5042 
-    ## F-statistic:    61 on 1 and 58 DF,  p-value: 1.275e-10
-
-``` r
-ggplot(XS,aes(y=MSTR,x=BTC))+
-  geom_point()+
-  geom_smooth(method="lm")
-```
-
-    ## `geom_smooth()` using formula = 'y ~ x'
-
-![](README_files/figure-gfm/MSTRbtcfit1-1.png)<!-- -->
-
-``` r
-MSTRBTCfit2 = lm(MSTR~SPY+BTC,data=XS)
-summary(MSTRBTCfit2)
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = MSTR ~ SPY + BTC, data = XS)
-    ## 
-    ## Residuals:
-    ##    Min     1Q Median     3Q    Max 
-    ## -432.2 -152.6  -34.6  124.8  415.7 
-    ## 
-    ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   8.1442    28.9072   0.282    0.779    
-    ## SPY           0.8645     0.5471   1.580    0.120    
-    ## BTC           0.9004     0.1570   5.735 3.89e-07 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 219.4 on 57 degrees of freedom
-    ## Multiple R-squared:  0.5331, Adjusted R-squared:  0.5167 
-    ## F-statistic: 32.54 on 2 and 57 DF,  p-value: 3.75e-10
-
-### Case Study: Tesla and Bitcoin
-
-Tesla is another company that has made a significant investment in
-Bitcoin.
-
-``` r
-TSLABTCfit = lm(TSLA~BTC,data=XS)
-summary(TSLABTCfit)
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = TSLA ~ BTC, data = XS)
-    ## 
-    ## Residuals:
-    ##     Min      1Q  Median      3Q     Max 
-    ## -554.83 -136.44    5.77  147.20  592.42 
-    ## 
-    ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  27.8137    27.6742   1.005 0.319052    
-    ## BTC           0.4705     0.1261   3.731 0.000435 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 211.1 on 58 degrees of freedom
-    ## Multiple R-squared:  0.1936, Adjusted R-squared:  0.1797 
-    ## F-statistic: 13.92 on 1 and 58 DF,  p-value: 0.0004353
-
-``` r
-ggplot(XS,aes(y=TSLA,x=BTC))+
-  geom_point()+
-  geom_smooth(method="lm")
-```
-
-    ## `geom_smooth()` using formula = 'y ~ x'
-
-![](README_files/figure-gfm/TSLAbtcfit1-1.png)<!-- -->
-
-``` r
-TSLABTCfit2 = lm(TSLA~SPY+BTC,data=XS)
-summary(TSLABTCfit2)
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = TSLA ~ SPY + BTC, data = XS)
-    ## 
-    ## Residuals:
-    ##     Min      1Q  Median      3Q     Max 
-    ## -423.50 -114.37    7.93  137.52  480.35 
-    ## 
-    ## Coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  18.9916    25.4239   0.747 0.458136    
-    ## SPY           1.6942     0.4812   3.521 0.000854 ***
-    ## BTC           0.2030     0.1381   1.470 0.147017    
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 193 on 57 degrees of freedom
-    ## Multiple R-squared:  0.3376, Adjusted R-squared:  0.3144 
-    ## F-statistic: 14.53 on 2 and 57 DF,  p-value: 7.968e-06
+Assets with high Sharpe ratios offer better risk-adjusted returns.
+Assets with high betas (above 1) are more sensitive to market movements
+and carry higher systematic risk, while assets with low betas (below 1)
+have dampened sensitivity to the market. Positive alphas suggest
+outperformance relative to CAPM predictions, though this may reflect
+either genuine skill, exposure to omitted risk factors, or
+sample-specific patterns that may not persist. High R-squared values
+indicate that market movements explain most of the asset’s return
+variation, while low R-squared values suggest that idiosyncratic or
+non-market factors dominate the asset’s returns.

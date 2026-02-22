@@ -2,7 +2,7 @@
 
 ### Overview
 
-In this project demo, we will import price data for several assets from FRED and Yahoo! Finance. Then those data series will be cleaned, merged, and analyzed. After the data is prepared for financial analysis, we will calculate and compare the nominal returns, real returns, and risk premiums. In addition to analyzing the performance of these assets in regard to the average annual returns, we will also calculate the standard deviations of the returns to measure the volatility of each asset. Then the asset return correlations will be explored to determine the extent to which the assets move together. This leads into a comparison of the risk-adjusted returns, which will be measured using the Sharpe ratio, and the CAPM betas, which will further examine the relationships between the assets.
+In this project demo, we will import price data for several assets from FRED and Yahoo! Finance. Then those data series will be cleaned, merged, and analyzed. After the data is prepared for financial analysis, we will calculate and compare the nominal returns, real returns, and excess returns (a.k.a. risk premiums). In addition to analyzing the performance of these assets in regard to the average annual returns, we will also calculate the standard deviations of the returns to measure the volatility of each asset. Then the asset return correlations will be explored to determine the extent to which the assets move together. This leads into a comparison of the risk-adjusted returns, which will be measured using the Sharpe ratio, and the CAPM betas, which will further examine the relationships between the assets.
 
 ### Repository Structure
 
