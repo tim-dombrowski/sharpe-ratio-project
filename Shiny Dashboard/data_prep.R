@@ -94,7 +94,12 @@ load_all_data = function(tickers,
   # --- 7. Build normalised price series aligned to FINAL window ------------
   PRICES_all = compute_normalized_prices(tickers, yf_env)
   # Keep only rows that fall within the FINAL date range
-  PRICES = PRICES_all[index(FINAL)]
+  PRICES_trimmed = PRICES_all[index(FINAL)]
+  # Re-normalise so that base = 100 at the start of the FINAL window
+  PRICES = xts(
+    apply(coredata(PRICES_trimmed), 2, function(x) x / x[1] * 100),
+    order.by = index(PRICES_trimmed)
+  )
 
   # --- 8. Identify asset columns (exclude RF and INF) ----------------------
   asset_cols = setdiff(colnames(FINAL), c("RF", "INF"))
