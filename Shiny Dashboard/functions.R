@@ -29,11 +29,10 @@ library(ggplot2)
 # Returns: single-column xts with annualised returns (%)
 # -----------------------------------------------------------------------------
 compute_returns = function(ticker, env) {
-  # getSymbols replaces hyphens with periods in object names
-  obj_name = gsub("-", ".", ticker)
-  data_obj = get(obj_name, envir = env)
+  # getSymbols stores objects under the original ticker name (e.g. "BTC-USD")
+  data_obj = get(ticker, envir = env)
 
-  adj_col = paste0(obj_name, ".Adjusted")
+  adj_col = paste0(ticker, ".Adjusted")
 
   # Monthly log return: ln(P_t / P_{t-1})
   prices   = as.numeric(data_obj[, adj_col])
@@ -68,9 +67,9 @@ compute_returns = function(ticker, env) {
 compute_normalized_prices = function(tickers, env) {
   price_list = list()
   for (ticker in tickers) {
-    obj_name = gsub("-", ".", ticker)
-    data_obj = get(obj_name, envir = env)
-    adj_col  = paste0(obj_name, ".Adjusted")
+    # getSymbols stores objects under the original ticker name (e.g. "BTC-USD")
+    data_obj = get(ticker, envir = env)
+    adj_col  = paste0(ticker, ".Adjusted")
 
     prices     = as.numeric(data_obj[, adj_col])
     normalised = prices / prices[1] * 100
